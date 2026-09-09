@@ -61,6 +61,6 @@ assert.equal(strict.mass_tons, null);
 const helicon = loadPropulsion(TEMPLATES).find((d) => d.friendlyName === "Helicon Drive x6");
 assert.equal(helicon.driveMass_tons, 0);
 assert.ok(helicon.plantMass_tons > 100, "reactor mass dominates an electric drive");
-assert.equal(helicon.radiator, "Dusty Plasma");
+assert.equal(helicon.radiator, "Dusty Plasma Radiator"); // the l10n name, not the JSON friendlyName
 assert.ok(helicon.radiatorMass_tons > 100, "and the radiator is a big chunk again");
 assert.ok(helicon.totalResearchCost > 0);

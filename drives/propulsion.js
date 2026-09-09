@@ -2,7 +2,7 @@
 
 const path = require("node:path");
 const { researchClosure } = require("./research-costs");
-const { loadTemplates } = require("../templates");
+const { loadTemplates, loadDisplayNames } = require("../templates");
 
 // "req power" and "thrustRating_GW" arrive as strings with thousands separators.
 const num = (value) => Number(String(value ?? 0).replaceAll(",", "")) || 0;
@@ -136,7 +136,13 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
 }
 
 const loadPropulsion = (directory) => {
-  const load = (name) => loadTemplates(directory, name);
+  // The JSON's friendlyName is an internal label; the name on screen comes from l10n.
+  const load = (name) => {
+    const names = loadDisplayNames(directory, name);
+    return loadTemplates(directory, name).map((record) =>
+      names.has(record.dataName) ? { ...record, friendlyName: names.get(record.dataName) } : record,
+    );
+  };
   return propulsionPackages(
     load("TIDriveTemplate.json"),
     load("TIPowerPlantTemplate.json"),

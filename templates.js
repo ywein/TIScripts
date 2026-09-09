@@ -39,4 +39,23 @@ function loadTemplates(root, file, scenario = SCENARIO_TAG) {
   return [...byName.values()];
 }
 
-module.exports = { loadTemplates, layers, ADDON, SCENARIO_TAG };
+// Display names live in l10n, not in the JSON: friendlyName is an internal label the game never
+// shows ("Ponderomotive VASIMR" flies as "Advanced VASIMR"). Keys are
+// "<template>.displayName.<dataName>"; scenario-suffixed keys carry an extra ".Tag" and so match
+// no dataName, and anything without a line keeps its friendlyName.
+function loadDisplayNames(root, file) {
+  const stem = path.basename(file, ".json");
+  const prefix = `${stem}.displayName.`;
+  const names = new Map();
+  for (const dir of layers(root, "l10n")) {
+    const at = path.join(dir, `${stem}.en`);
+    if (!fs.existsSync(at)) continue;
+    for (const line of fs.readFileSync(at, "utf8").split(/\r?\n/)) {
+      const [key, ...rest] = line.split("=");
+      if (key.startsWith(prefix) && rest.length) names.set(key.slice(prefix.length), rest.join("="));
+    }
+  }
+  return names;
+}
+
+module.exports = { loadTemplates, loadDisplayNames, layers, ADDON, SCENARIO_TAG };
