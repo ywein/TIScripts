@@ -16,9 +16,6 @@ const RADIATOR = "DustyPlasma";
 const MATERIAL_RARITY = { antimatter: 500, fissiles: 1, nobleMetals: 0.5 };
 // The reference mission the supply bill is quoted for — the page's own defaults.
 const REFERENCE_SHIP = { hull_tons: 5000, deltaV_kps: 10 };
-// Above this, a drive is a museum piece: the Pion Torch bills 25,000 against 360 for the next
-// worst drive in the game, so anything in the hundreds is still something you can fly.
-const PRACTICAL_LIMIT = 1000;
 const isAlien = (item) => (item.requiredProjectName || "").startsWith("Project_Alien");
 
 // Drive mass is the flat hull mass plus a per-jet-watt term; open-cycle drives (chemical,
@@ -116,7 +113,6 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
       tankSupplyCost: perTank,
       referenceTanks: tanks,
       supplyBill: perTank * tanks,
-      practical: perTank * tanks <= PRACTICAL_LIMIT,
       power_GW: power,
       powerPlant: pick ? pick.plant.friendlyName : null,
       plantMass_tons: pick ? pick.plantMass_tons : 0,
@@ -155,6 +151,5 @@ module.exports = {
   wasteHeat_GW,
   tankSupplyCost,
   MATERIAL_RARITY,
-  PRACTICAL_LIMIT,
   REFERENCE_SHIP,
 };

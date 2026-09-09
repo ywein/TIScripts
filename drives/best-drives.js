@@ -3,6 +3,13 @@
 const path = require("node:path");
 const { loadPropulsion } = require("./propulsion");
 
+// How much cheaper to run a drive has to be before it is worth naming as the practical choice,
+// and how much of the strong drive it still has to be on both axes. Ratios, not amounts, so they
+// mean the same thing in every bracket.
+const CLEARLY_CHEAPER = 10;
+const STILL_WORTH_IT = 0.5;
+const bill = (drive) => drive.supplyBill || 0;
+
 const CAPS = [100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000];
 
 function pareto(drives) {
@@ -43,10 +50,19 @@ function bestByBracket(drives) {
     const strongest = (list) => list.reduce((best, d) => (!best || power(d) > power(best) ? d : best), null);
     const frontier = pareto(items);
     const best = strongest(frontier);
-    // The best drive you would actually fly: the strongest one whose propellant you can afford to
-    // keep buying. It gets its own frontier, because a drive that is better on paper hides it —
-    // the Pion Torch dominates the Protium Converter Torch on both axes and bankrupts you.
-    const usable = strongest(pareto(items.filter((d) => d.practical !== false)));
+    // Whether a running cost is outrageous only means anything next to what the same era offers,
+    // so nothing here is measured in absolute materials: the bracket has to hand you a way out.
+    // A drive is the one you would actually fly when it is still most of the strong drive on both
+    // axes — a chemical rocket has the jet power of an Orion and a ninth of its exhaust velocity —
+    // for an order of magnitude less rare material. It gets its own frontier, because the
+    // strong drive dominates it on both axes — the Pion Torch hides the Protium Converter Torch.
+    const cheaper = items.filter(
+      (drive) =>
+        drive.EV_kps >= STILL_WORTH_IT * best.EV_kps &&
+        drive.thrust_N >= STILL_WORTH_IT * best.thrust_N &&
+        bill(drive) * CLEARLY_CHEAPER <= bill(best),
+    );
+    const usable = strongest(pareto(cheaper));
     const listed = usable && !frontier.includes(usable) ? [...frontier, usable] : frontier;
     return listed
       .sort((a, b) => a.totalResearchCost - b.totalResearchCost)
