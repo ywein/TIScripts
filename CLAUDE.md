@@ -73,9 +73,10 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   both axes and would otherwise hide it. Nothing is judged against an absolute running cost, which
   would just encode one game stage: a drive qualifies as usable only relative to the bracket's best
   (`STILL_WORTH_IT` of it on both axes, `CLEARLY_CHEAPER` to run). The bill itself comes from
-  `propulsion.js` — rare materials per tank (`MATERIAL_RARITY`, a judgement call: antimatter 500,
-  fissiles 1, noble metals 0.5, everything else free) times the tanks a 5000 t / 10 km/s reference
-  mission burns. alien drives are excluded upstream in `build-chart.js` because they are loot.
+  `propulsion.js`: a tank costs months of production, `share × 100 / MONTHLY_OUTPUT[material]`
+  summed over every material (mid-game rates, antimatter at a twentieth of fissiles), times the
+  tanks a 5000 t / 10 km/s reference mission burns. Common materials count — 3,000 t of volatiles
+  is a bigger bill than an Orion's noble metals. alien drives are excluded upstream in `build-chart.js` because they are loot.
 - `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals
   into nations/regions/claims; `unify`/`topBlocs`/`plan` compute which nations can merge into
   mega-nations and in what order. `loadWorld` is the single place that knows which files make a

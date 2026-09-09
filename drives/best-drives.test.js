@@ -32,10 +32,10 @@ assert.deepEqual(Object.keys(bestByBracket([weak])), [
 
 // A drive that dominates the frontier but bankrupts you does not hide the one you would fly:
 // the usable pick gets its own frontier and is listed even when the strong drive covers it.
-const torch = (name, cost, efficiency, thrust, supplyBill) => ({
+const torch = (name, cost, efficiency, thrust, supplyMonths) => ({
   ...drive(name, cost, efficiency, thrust),
   thrustRating_GW: (efficiency * thrust) / 2,
-  supplyBill,
+  supplyMonths,
 });
 const [ruinous, flyable] = [
   torch("Ruinous", 50_000, 10, 10, 1000),

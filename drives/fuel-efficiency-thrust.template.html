@@ -116,11 +116,12 @@ body {
     (draw &times; the plant's t/GW; the plant chosen is the cheapest to research that is of the class
     the drive demands and can carry the load) plus Dusty Plasma radiators for the waste heat the
     plant does not convert &mdash; (1 &minus; plant efficiency) &times; drive draw, at 18 kW/kg.
-    The rare-fuel figure weighs only the materials you run short of &mdash; antimatter counts 500&times;
-    a ton of fissiles, noble metals half, everything else nothing &mdash; times the tanks the reference
-    ship burns. No absolute figure decides what is affordable, since a bill that is ruinous early is
-    routine later: a bracket names a <em class="usable">best usable</em> drive only when it holds one
-    that is still at least half the best drive on both axes for a tenth of the rare material. Open-cycle drives radiate through the nozzle and carry none. Propellant is the rocket equation
+    The supply figure prices a trip in months of a mid-game faction's output &mdash; 5,000 t of water
+    and metals, 2,000 t of volatiles, 1,000 t of noble metals, 300 t of fissiles, and antimatter at a
+    twentieth of that &mdash; so 3,000 t of common volatiles counts as the real bill it is. No absolute
+    figure decides what is affordable, since a bill that is ruinous early is routine later: a bracket
+    names a <em class="usable">best usable</em> drive only when it holds one that is still at least
+    half the best drive on both axes for a tenth of the production. Open-cycle drives radiate through the nozzle and carry none. Propellant is the rocket equation
     over the hull mass and &Delta;v you set, rounded up to whole 100 t tanks the way the ship
     builder makes you buy them &mdash; dry mass is your hull plus the propulsion package,
     and acceleration is quoted with full tanks. The tanks themselves, and the hull, are not massed. Dot area is clamped to the 5th&ndash;95th
@@ -181,7 +182,7 @@ body {
 function ship(n){if(n.m==null)return null;const dry=Math.max(0,+QH.value||0)+n.m,tanks=Math.ceil(dry*(Math.exp(Math.max(0,+QV.value||0)/n.e)-1)/100),prop=tanks*100,wet=dry+prop;return{dry,wet,prop,tanks,a:n.t/(wet*1000),a0:n.t/(dry*1000)}}
 const SIZE={r:n=>n.r,m:n=>n.m,a:n=>{const s=ship(n);return s&&s.a},f:n=>{const s=ship(n);return s&&s.prop}};
 function stats(d){const x=d.map(v=>Math.log10(v.e)),y=d.map(v=>Math.log10(v.t)),mx=d3.mean(x),my=d3.mean(y),xx=d3.sum(x,v=>(v-mx)**2),xy=d3.sum(x.map((v,i)=>(v-mx)*(y[i]-my)));return{r:xy/Math.sqrt(xx*d3.sum(y,v=>(v-my)**2)),a:my-xy/xx*mx,b:xy/xx}}
-function showTip(ev,n){if(!n)return;const mix=Object.entries(n.f||{}).filter(([,v])=>v>0).map(([k,v])=>d3.format(".3~g")(v*100)+"% "+nice(k)).join(", ");T.style.display="block";T.innerHTML="<b>"+n.n+"</b>"+nice(n.c)+"<br>EV: "+d3.format(",~g")(n.e)+" km/s<br>Thrust: "+d3.format(",")(n.t)+" N<br>Fuel: "+nice(n.p)+(mix?" ("+mix+")":"")+"<br>Package: "+(n.m==null?"n/a":t(n.m)+" t")+(n.m==null?"":"<br>&nbsp;&nbsp;drive "+t(n.dm)+" t · reactor "+t(n.pm)+" t · radiator "+t(n.rm)+" t")+(n.pl?"<br>Reactor: "+n.pl+" @ "+t(n.w)+" GW":"")+(n.rd?"<br>Radiator: "+n.rd+" · "+t(n.q)+" GW waste heat":"")+(()=>{const s=ship(n);return s?"<br>Ship: "+t(s.wet)+" t wet · "+s.tanks+" tank"+(s.tanks===1?"":"s")+" ("+t(s.prop)+" t propellant)"+"<br>Accel: "+t(s.a)+" → "+t(s.a0)+" m/s² (full → dry)":""})()+(n.sb?(()=>{const s=ship(n);return "<br>Rare fuel: "+t(n.sb)+" per tank"+(s?" · "+t(n.sb*s.tanks)+" this trip":"")})():"")+"<br>Research: "+(Number.isFinite(n.r)?d3.format(",")(n.r)+" RP across "+n.i+" items":"not researchable");place(ev)}
+function showTip(ev,n){if(!n)return;const mix=Object.entries(n.f||{}).filter(([,v])=>v>0).map(([k,v])=>d3.format(".3~g")(v*100)+"% "+nice(k)).join(", ");T.style.display="block";T.innerHTML="<b>"+n.n+"</b>"+nice(n.c)+"<br>EV: "+d3.format(",~g")(n.e)+" km/s<br>Thrust: "+d3.format(",")(n.t)+" N<br>Fuel: "+nice(n.p)+(mix?" ("+mix+")":"")+"<br>Package: "+(n.m==null?"n/a":t(n.m)+" t")+(n.m==null?"":"<br>&nbsp;&nbsp;drive "+t(n.dm)+" t · reactor "+t(n.pm)+" t · radiator "+t(n.rm)+" t")+(n.pl?"<br>Reactor: "+n.pl+" @ "+t(n.w)+" GW":"")+(n.rd?"<br>Radiator: "+n.rd+" · "+t(n.q)+" GW waste heat":"")+(()=>{const s=ship(n);return s?"<br>Ship: "+t(s.wet)+" t wet · "+s.tanks+" tank"+(s.tanks===1?"":"s")+" ("+t(s.prop)+" t propellant)"+"<br>Accel: "+t(s.a)+" → "+t(s.a0)+" m/s² (full → dry)":""})()+(n.sb?(()=>{const s=ship(n);return "<br>Supply: "+(s?t(n.sb*s.tanks)+" months of production":"")+" ("+t(n.sb)+"/tank)"})():"")+"<br>Research: "+(Number.isFinite(n.r)?d3.format(",")(n.r)+" RP across "+n.i+" items":"not researchable");place(ev)}
 function place(ev){const b=R.getBoundingClientRect(),u=T.getBoundingClientRect();T.style.left=Math.min(R.clientWidth-u.width-4,ev.clientX-b.left+12)+"px";T.style.top=Math.max(0,ev.clientY-b.top-u.height-10)+"px"}
 for(const el of R.querySelectorAll("[data-tip]")){el.addEventListener("pointerover",ev=>{T.style.display="block";T.textContent=el.dataset.tip;place(ev)});el.addEventListener("pointerout",ev=>{if(!el.contains(ev.relatedTarget))T.style.display="none"})}
 const B=d3.select(R.querySelector("nav")).selectAll("span").data(C).join("span");B.append("i").style("--c",c=>K.get(c));B.append("small").text(nice);

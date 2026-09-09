@@ -8,7 +8,7 @@ const { loadPropulsion } = require("./propulsion");
 // mean the same thing in every bracket.
 const CLEARLY_CHEAPER = 10;
 const STILL_WORTH_IT = 0.5;
-const bill = (drive) => drive.supplyBill || 0;
+const bill = (drive) => drive.supplyMonths || 0;
 
 const CAPS = [100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000];
 
@@ -54,7 +54,7 @@ function bestByBracket(drives) {
     // so nothing here is measured in absolute materials: the bracket has to hand you a way out.
     // A drive is the one you would actually fly when it is still most of the strong drive on both
     // axes — a chemical rocket has the jet power of an Orion and a ninth of its exhaust velocity —
-    // for an order of magnitude less rare material. It gets its own frontier, because the
+    // for an order of magnitude less production. It gets its own frontier, because the
     // strong drive dominates it on both axes — the Pion Torch hides the Protium Converter Torch.
     const cheaper = items.filter(
       (drive) =>
@@ -71,7 +71,7 @@ function bestByBracket(drives) {
         researchCost: drive.totalResearchCost,
         fuelEfficiency_kps: drive.EV_kps,
         thrust_N: drive.thrust_N,
-        supplyBill: drive.supplyBill,
+        supplyMonths: drive.supplyMonths,
         best: drive === best,
         bestUsable: drive === usable && usable !== best,
       }));

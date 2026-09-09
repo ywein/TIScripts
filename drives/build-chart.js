@@ -28,7 +28,7 @@ const chartData = largestVariants(drives)
     rm: drive.radiatorMass_tons,
     q: drive.wasteHeat_GW,
     rd: drive.radiator,
-    sb: drive.tankSupplyCost,
+    sb: drive.tankSupplyMonths,
   }));
 const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x6");
 if (!helicon) throw new Error("Helicon Drive x6 not found");
@@ -56,7 +56,7 @@ const brackets = Object.entries(bestByBracket(drives.filter((drive) => !isAlien(
         .join("")}</ul></section>`,
   )
   .join("");
-const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the most powerful in the bracket, <em class="usable">best usable</em> the strongest drive in the same bracket that costs an order of magnitude less rare material to run</p><div class="brackets">${brackets}</div></section>`;
+const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the most powerful in the bracket, <em class="usable">best usable</em> the strongest drive in the same bracket that costs an order of magnitude less production to run</p><div class="brackets">${brackets}</div></section>`;
 const template = fs.readFileSync(path.join(__dirname, "fuel-efficiency-thrust.template.html"), "utf8");
 const output = template
   .replace("__DRIVES__", JSON.stringify(chartData))

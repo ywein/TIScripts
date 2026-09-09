@@ -10,10 +10,18 @@ const num = (value) => Number(String(value ?? 0).replaceAll(",", "")) || 0;
 // which is what keeps the high-end drives from drowning in radiator mass.
 const RADIATOR = "DustyPlasma";
 
-// What a tank of propellant actually costs you, counting only the materials you are ever short
-// of. Water, volatiles and metals are abundant enough to be free at this resolution; the weights
-// below are a judgement call about relative scarcity, not something the templates state.
-const MATERIAL_RARITY = { antimatter: 500, fissiles: 1, nobleMetals: 0.5 };
+// What a tank of propellant actually costs you, in tons per month a mid-game faction produces.
+// Dividing by these turns a tank into months of production, which is the only unit in which a
+// ton of water and a ton of antimatter are comparable. Antimatter is late-game only and lands at
+// about a twentieth of fissile output.
+const MONTHLY_OUTPUT = {
+  water: 5000,
+  metals: 5000,
+  volatiles: 2000,
+  nobleMetals: 1000,
+  fissiles: 300,
+  antimatter: 15,
+};
 // The reference mission the supply bill is quoted for — the page's own defaults.
 const REFERENCE_SHIP = { hull_tons: 5000, deltaV_kps: 10 };
 const isAlien = (item) => (item.requiredProjectName || "").startsWith("Project_Alien");
@@ -48,10 +56,11 @@ const wasteHeat_GW = (drive, plant) =>
 // Radiators are rated in kW rejected per kg, so tons per GW is 1000 / that.
 const radiatorMass = (heat_GW, radiator) => (heat_GW * 1000) / radiator.specificPower_2s_KWkg;
 
-// Rare materials per 100 t tank, weighted by how much it hurts to spend them.
-const tankSupplyCost = (drive) =>
+// Months of production a 100 t tank costs, every material counted — 3,000 t of volatiles is a
+// real bill even though volatiles are common.
+const tankSupplyMonths = (drive) =>
   Object.entries(drive.perTankPropellantMaterials || {}).reduce(
-    (sum, [material, share]) => sum + share * 100 * (MATERIAL_RARITY[material] || 0),
+    (sum, [material, share]) => sum + (share * 100) / (MONTHLY_OUTPUT[material] || Infinity),
     0,
   );
 
@@ -105,14 +114,14 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
     const pick = options.sort(
       (a, b) => a.researchCost - b.researchCost || packMass(a) - packMass(b),
     )[0];
-    const perTank = tankSupplyCost(drive);
+    const perTank = tankSupplyMonths(drive);
     const tanks = pick || power === 0 ? referenceTanks(drive, mass + (pick ? packMass(pick) : 0)) : 0;
     return {
       ...drive,
       driveMass_tons: mass,
-      tankSupplyCost: perTank,
+      tankSupplyMonths: perTank,
       referenceTanks: tanks,
-      supplyBill: perTank * tanks,
+      supplyMonths: perTank * tanks,
       power_GW: power,
       powerPlant: pick ? pick.plant.friendlyName : null,
       plantMass_tons: pick ? pick.plantMass_tons : 0,
@@ -149,7 +158,7 @@ module.exports = {
   driveMass,
   viablePlants,
   wasteHeat_GW,
-  tankSupplyCost,
-  MATERIAL_RARITY,
+  tankSupplyMonths,
+  MONTHLY_OUTPUT,
   REFERENCE_SHIP,
 };
