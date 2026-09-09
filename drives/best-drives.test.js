@@ -39,15 +39,16 @@ assert.deepEqual(
 
 // Acceleration is worth having up to the point it stops mattering, and a trip you cannot supply
 // is worth nothing — so a tenth of the acceleration has to come with a tenth of the bill.
-const score = (accel_ms2, supplyMonths) => driveScore({ accel_ms2, supplyMonths });
-assert.equal(score(0.0015, 0.01), null, "cannot usefully move the ship at all");
+const MILLI_G = 0.00980665;
+const score = (milli_g, supplyMonths) => driveScore({ accel_ms2: milli_g * MILLI_G, supplyMonths });
+assert.equal(score(1.5, 0.01), null, "under 2 milli-g: cannot manoeuvre at all");
 assert.ok(
-  Math.abs(score(0.1, 1) - score(0.02, 0.2)) < 1e-12,
+  Math.abs(score(10, 1) - score(2, 0.2)) < 1e-12,
   "a fifth the acceleration for a fifth the bill",
 );
-assert.ok(score(1, 1) === score(0.1, 1), "acceleration past 0.1 buys nothing");
-assert.ok(score(0.05, 0.1) > score(0.05, 1), "cheaper to run is better");
-assert.ok(score(0.05, 0.5) > score(0.01, 0.5), "faster is better");
+assert.ok(score(100, 1) === score(10, 1), "acceleration past 10 milli-g buys nothing");
+assert.ok(score(5, 0.1) > score(5, 1), "cheaper to run is better");
+assert.ok(score(5, 0.5) > score(3, 0.5), "faster is better");
 
 // Two drives that both cost a tank of water are the same answer; the one that accelerates twice
 // as hard should not lose to a rounding difference in propellant.
@@ -66,7 +67,7 @@ assert.equal(
   ]).n,
   "Frugal",
 );
-assert.equal(pickBest([{ n: "Stranded", accel_ms2: 0.0015, supplyMonths: 0.01 }]), null);
+assert.equal(pickBest([{ n: "Stranded", accel_ms2: 1.5 * MILLI_G, supplyMonths: 0.01 }]), null);
 // However well it flies, a ship that has to be four fifths propellant is not a design.
 assert.equal(driveScore({ accel_ms2: 1, supplyMonths: 0.1, propellantRatio: 24 }), null);
 assert.ok(driveScore({ accel_ms2: 1, supplyMonths: 0.1, propellantRatio: 2.69 }) !== null);

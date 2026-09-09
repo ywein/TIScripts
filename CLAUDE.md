@@ -73,10 +73,10 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   axes and hides them. Each bracket tags the drive worth flying as `best` and, when a different drive has more jet
   power, that one as `best expensive`. Only the second is a property of the drive alone; the first
   depends on the ship, so `driveScore` and `pickBest`
-  (null when the trip needs more than 3 t of propellant per ton of ship or leaves under
-  0.002 m/s² of acceleration (0.2 milli-g, the game's own floor — the game shows milli-g, so the
-  tooltip does too), else acceleration on a log
-  scale credited between 0.02 and 0.1 m/s² minus the trip's supply months on the same scale, with
+  (null when the trip needs more than 3 t of propellant per ton of ship or leaves the ship under
+  2 milli-g (the game's own floor for manoeuvring; thresholds and the tooltip are both in milli-g
+  because that is what the game shows), else acceleration on a log
+  scale credited between 2 and 10 milli-g minus the trip's supply months on the same scale, with
   near-ties going to the faster ship) — a null also drops the drive from the bracket's list are **injected into the page
   verbatim** by `build-chart.js` via `Function.prototype.toString()` and re-run there whenever the
   hull mass or Δv input changes. One tested

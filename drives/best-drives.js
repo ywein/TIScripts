@@ -6,18 +6,19 @@ const { loadPropulsion } = require("./propulsion");
 // What a drive is worth for a given ship: nothing at all if the trip would need more propellant
 // than the ship could plausibly carry — a chemical rocket keeps its place on the frontier forever
 // because nothing beats its thrust, but wanting 24 times its own mass in propellant settles it.
-// Otherwise acceptance is acceleration on a log scale, credited only between the
-// point it becomes usable at all and the point where more of it stops buying anything, minus what
-// the trip costs in months of production on the same scale. Injected verbatim into the page, which
+// Otherwise it is acceleration on a log scale, credited from the point the ship can manoeuvre at
+// all up to the point where more of it stops buying anything, minus what the trip costs in months
+// of production on the same scale. Injected verbatim into the page, which
 // re-runs it against whatever hull and Δv you type in — this is the only copy of the formula.
 function driveScore({ accel_ms2, supplyMonths, propellantRatio }) {
-  const USABLE = 0.02; // m/s^2, about 2 milli-g — tiny but flyable, the reference point
-  const GOOD = 0.1; // ~10 milli-g: more acceleration than this is pleasant, not valuable
-  const DEAD = 0.002; // 0.2 milli-g, the game's own floor for a ship that can still manoeuvre
+  const MILLI_G = 0.00980665; // the game quotes acceleration in milli-g, so the thresholds are too
+  const FLYABLE = 2; // below this the ship cannot manoeuvre — the game's own floor
+  const GOOD = 10; // more acceleration than this is pleasant, not valuable
   const TANKAGE = 3; // tons of propellant per ton of ship before the design is a joke
-  if (!(accel_ms2 >= DEAD) || !(supplyMonths > 0)) return null;
+  const milli_g = accel_ms2 / MILLI_G;
+  if (!(milli_g >= FLYABLE) || !(supplyMonths > 0)) return null;
   if (propellantRatio > TANKAGE) return null;
-  return Math.log10(Math.min(accel_ms2, GOOD) / USABLE) - Math.log10(supplyMonths);
+  return Math.log10(Math.min(milli_g, GOOD) / FLYABLE) - Math.log10(supplyMonths);
 }
 
 // Scores this close say the same thing — the difference is a few tons of water — so the faster
