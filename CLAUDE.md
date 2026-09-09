@@ -60,7 +60,9 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   and that plant's mass is `req power × specificPower_tGW`, capped by its `maxOutput_GW`. It picks
   the cheapest-to-research viable plant and prices drive + plant as *one* closure. Open-cycle
   drives (`req power` 0) carry their own reactor via `flatMass_tons` / `specificPower_kgMW`.
-  Radiators, tanks and hull are not modelled.
+  Waste heat is `(1 - plant efficiency) × req power` for anything not `cooling: "Open"`, rejected
+  by Tin Droplet radiators at `1000 / specificPower_2s_KWkg` tons per GW. Tanks and hull are not
+  modelled.
 - `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
   brackets; alien drives are excluded upstream in `build-chart.js` because they are loot.
 - `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals

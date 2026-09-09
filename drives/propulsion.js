@@ -6,6 +6,8 @@ const { loadTemplates } = require("../templates");
 
 // "req power" and "thrustRating_GW" arrive as strings with thousands separators.
 const num = (value) => Number(String(value ?? 0).replaceAll(",", "")) || 0;
+// A mid-tier droplet radiator, used as the reference for every drive so the numbers compare.
+const RADIATOR = "TinDroplet";
 const isAlien = (item) => (item.requiredProjectName || "").startsWith("Project_Alien");
 
 // Drive mass is the flat hull mass plus a per-jet-watt term; open-cycle drives (chemical,
@@ -27,9 +29,19 @@ const viablePlants = (plants, drive) => {
   );
 };
 
-// Every drive+plant pairing, priced as one research closure so prereqs the drive and the
-// reactor share are paid for once.
-function propulsionPackages(drives, plants, projects, techs) {
+// Open-cycle drives throw their waste heat out of the nozzle. Everything else has to radiate
+// what the reactor does not turn into power.
+// ponytail: "Calc" cooling is treated as closed-cycle; if the game computes it from the drive's
+// own efficiency instead, this is the one line to change.
+const wasteHeat_GW = (drive, plant) =>
+  drive.cooling === "Open" ? 0 : (1 - plant.efficiency) * num(drive["req power"]);
+
+// Radiators are rated in kW rejected per kg, so tons per GW is 1000 / that.
+const radiatorMass = (heat_GW, radiator) => (heat_GW * 1000) / radiator.specificPower_2s_KWkg;
+
+// Every drive+plant pairing, priced as one research closure so prereqs the drive, the reactor
+// and the radiator share are paid for once.
+function propulsionPackages(drives, plants, projects, techs, radiators = []) {
   return drives.map((drive) => {
     const power = num(drive["req power"]);
     const mass = driveMass(drive);
@@ -39,17 +51,34 @@ function propulsionPackages(drives, plants, projects, techs) {
         ? null
         : { researchCost: cost.reduce((sum, c) => sum + c, 0), researchItems: items.size };
     };
+    const radiator = radiators.find((item) => item.dataName === RADIATOR);
     const base = price([drive.requiredProjectName]);
     const options = (power > 0 ? viablePlants(plants, drive) : [])
       .map((plant) => {
-        const cost = price([drive.requiredProjectName, plant.requiredProjectName].filter(Boolean));
-        return cost && { plant, plantMass_tons: power * plant.specificPower_tGW, ...cost };
+        const heat = radiator ? wasteHeat_GW(drive, plant) : 0;
+        const cost = price(
+          [
+            drive.requiredProjectName,
+            plant.requiredProjectName,
+            heat > 0 && radiator.requiredProjectName,
+          ].filter(Boolean),
+        );
+        return (
+          cost && {
+            plant,
+            plantMass_tons: power * plant.specificPower_tGW,
+            heat_GW: heat,
+            radiatorMass_tons: heat > 0 ? radiatorMass(heat, radiator) : 0,
+            ...cost,
+          }
+        );
       })
       .filter(Boolean);
     // The reactor you would actually pair with the drive: the one that costs least to reach,
-    // breaking ties on mass. Chasing a lighter reactor is a separate research decision.
+    // breaking ties on mass — a more efficient plant also drags fewer radiators along.
+    const packMass = (option) => option.plantMass_tons + option.radiatorMass_tons;
     const pick = options.sort(
-      (a, b) => a.researchCost - b.researchCost || a.plantMass_tons - b.plantMass_tons,
+      (a, b) => a.researchCost - b.researchCost || packMass(a) - packMass(b),
     )[0];
     return {
       ...drive,
@@ -57,7 +86,10 @@ function propulsionPackages(drives, plants, projects, techs) {
       power_GW: power,
       powerPlant: pick ? pick.plant.friendlyName : null,
       plantMass_tons: pick ? pick.plantMass_tons : 0,
-      mass_tons: pick ? mass + pick.plantMass_tons : power > 0 ? null : mass,
+      wasteHeat_GW: pick ? pick.heat_GW : 0,
+      radiator: pick && pick.heat_GW > 0 ? radiator.friendlyName : null,
+      radiatorMass_tons: pick ? pick.radiatorMass_tons : 0,
+      mass_tons: pick ? mass + packMass(pick) : power > 0 ? null : mass,
       totalResearchCost: pick ? pick.researchCost : base && base.researchCost,
       researchItems: pick ? pick.researchItems : base ? base.researchItems : 0,
     };
@@ -71,6 +103,7 @@ const loadPropulsion = (directory) => {
     load("TIPowerPlantTemplate.json"),
     load("TIProjectTemplate.json"),
     load("TITechTemplate.json"),
+    load("TIRadiatorTemplate.json"),
   );
 };
 
@@ -80,4 +113,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { propulsionPackages, loadPropulsion, driveMass, viablePlants };
+module.exports = { propulsionPackages, loadPropulsion, driveMass, viablePlants, wasteHeat_GW };

@@ -24,6 +24,10 @@ const chartData = largestVariants(drives)
     dm: drive.driveMass_tons,
     w: drive.power_GW,
     pl: drive.powerPlant,
+    pm: drive.plantMass_tons,
+    rm: drive.radiatorMass_tons,
+    q: drive.wasteHeat_GW,
+    rd: drive.radiator,
   }));
 const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x6");
 if (!helicon) throw new Error("Helicon Drive x6 not found");
