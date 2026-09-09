@@ -1,0 +1,161 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drive Atlas</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root {
+  --sheet: #e4e2d9;
+  --card: #f3f2ec;
+  --card-sunk: #eae8e0;
+  --ink: #17212c;
+  --ink-soft: #5b6672;
+  --ink-faint: #8a939d;
+  --rule: #c9c6ba;
+  --rule-hard: #a9a598;
+  --viz-series-1: #1c6a5c;
+  --viz-series-2: #ab3f2b;
+  --viz-series-3: #8d6415;
+  --viz-series-4: #3f6ea8;
+  --viz-series-5: #7a4a86;
+  --viz-series-6: #5b6672;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sheet: #121820;
+    --card: #1a222b;
+    --card-sunk: #151d25;
+    --ink: #e3e6e4;
+    --ink-soft: #97a2ac;
+    --ink-faint: #6b7681;
+    --rule: #2c3743;
+    --rule-hard: #435160;
+    --viz-series-1: #52b8a2;
+    --viz-series-2: #dd7154;
+    --viz-series-3: #cfa049;
+    --viz-series-4: #7aa8dd;
+    --viz-series-5: #b48ac6;
+    --viz-series-6: #97a2ac;
+  }
+}
+:root[data-theme="dark"] {
+  --sheet: #121820;
+  --card: #1a222b;
+  --card-sunk: #151d25;
+  --ink: #e3e6e4;
+  --ink-soft: #97a2ac;
+  --ink-faint: #6b7681;
+  --rule: #2c3743;
+  --rule-hard: #435160;
+  --viz-series-1: #52b8a2;
+  --viz-series-2: #dd7154;
+  --viz-series-3: #cfa049;
+  --viz-series-4: #7aa8dd;
+  --viz-series-5: #b48ac6;
+  --viz-series-6: #97a2ac;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--sheet);
+  color: var(--ink);
+  font: 400 16px/1.55 "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 20px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.eyebrow {
+  font: 600 12px/1 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.masthead { display: flex; flex-direction: column; gap: 10px; }
+.masthead h1 {
+  margin: 0;
+  font: 700 clamp(34px, 6vw, 54px)/.98 "Archivo Narrow", "Arial Narrow", sans-serif;
+  letter-spacing: -.005em;
+  text-wrap: balance;
+}
+.masthead p { margin: 0; max-width: 62ch; color: var(--ink-soft); }
+.masthead hr { width: 100%; height: 3px; margin: 6px 0 0; border: 0; background: var(--ink); }
+
+.note { font-size: 13px; color: var(--ink-faint); max-width: 68ch; }
+.foot { border-top: 1px solid var(--rule); padding-top: 14px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <span class="eyebrow">Terra Invicta &middot; drive designs</span>
+    <h1>Drive Atlas</h1>
+    <p>
+      Every single-thruster drive design, placed by what it costs you to move: fuel efficiency
+      against thrust, with the dot area showing the research bill to unlock it.
+    </p>
+    <hr>
+  </header>
+
+  <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · exhaust velocity = fuel efficiency · dot area = cumulative research cost</p><nav aria-label="Toggle drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents cumulative research cost"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer><section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both</p><div class="brackets"><section><h4>below 100k</h4><ul><li data-drive="Neutron Liquid Rocket"><span>Neutron Liquid Rocket</span><small>200 RP</small></li><li data-drive="Diana Superheavy Rocket"><span>Diana Superheavy Rocket</span><small>1,500 RP</small></li><li data-drive="Pulsed Plasmoid Drive"><span>Pulsed Plasmoid Drive</span><small>22,250 RP</small></li><li data-drive="Helicon Drive"><span>Helicon Drive</span><small>34,500 RP</small></li><li data-drive="Orion Drive"><span>Orion Drive</span><small>49,750 RP</small></li><li data-drive="Burner Drive"><span>Burner Drive</span><small>66,000 RP</small></li></ul></section><section><h4>below 200k</h4><ul><li data-drive="Neutron Liquid Rocket"><span>Neutron Liquid Rocket</span><small>200 RP</small></li><li data-drive="Diana Superheavy Rocket"><span>Diana Superheavy Rocket</span><small>1,500 RP</small></li><li data-drive="Pulsed Plasmoid Drive"><span>Pulsed Plasmoid Drive</span><small>22,250 RP</small></li><li data-drive="Helicon Drive"><span>Helicon Drive</span><small>34,500 RP</small></li><li data-drive="Orion Drive"><span>Orion Drive</span><small>49,750 RP</small></li><li data-drive="Antimatter Microfission Drive"><span>Antimatter Microfission Drive</span><small>108,250 RP</small></li><li data-drive="Neutron Flux Lantern"><span>Neutron Flux Lantern</span><small>146,750 RP</small></li><li data-drive="Neutronium Microfission Drive"><span>Neutronium Microfission Drive</span><small>178,775 RP</small></li></ul></section><section><h4>below 300k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Minimag Orion"><span>Advanced Minimag Orion</span><small>271,750 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Triton Reflex Drive"><strong>Triton Reflex Drive</strong><small>297,750 RP</small></li></ul></section><section><h4>below 400k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Minimag Orion"><span>Advanced Minimag Orion</span><small>271,750 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Zeta Triton Drive"><strong>Zeta Triton Drive</strong><small>371,250 RP</small></li><li data-drive="Deuteron Reflex Drive"><strong>Deuteron Reflex Drive</strong><small>390,250 RP</small></li><li data-drive="Deuteron Fusor Drive"><span>Deuteron Fusor Drive</span><small>397,750 RP</small></li></ul></section><section><h4>below 500k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Minimag Orion"><span>Advanced Minimag Orion</span><small>271,750 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Triton Nova Drive"><span>Triton Nova Drive</span><small>424,750 RP</small></li><li data-drive="Deuteron Polywell Drive"><strong>Deuteron Polywell Drive</strong><small>437,750 RP</small></li><li data-drive="Deuteron Torus Drive"><strong>Deuteron Torus Drive</strong><small>457,750 RP</small></li><li data-drive="Zeta Deuteron Drive"><strong>Zeta Deuteron Drive</strong><small>486,250 RP</small></li></ul></section><section><h4>below 600k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Minimag Orion"><span>Advanced Minimag Orion</span><small>271,750 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Deuteron Torus Drive"><strong>Deuteron Torus Drive</strong><small>457,750 RP</small></li><li data-drive="Zeta Deuteron Drive"><strong>Zeta Deuteron Drive</strong><small>486,250 RP</small></li><li data-drive="Helion Torus Lantern"><strong>Helion Torus Lantern</strong><small>571,250 RP</small></li></ul></section><section><h4>below 700k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Zeta Deuteron Drive"><strong>Zeta Deuteron Drive</strong><small>486,250 RP</small></li><li data-drive="Zeta Helion Lantern"><strong>Zeta Helion Lantern</strong><small>636,250 RP</small></li><li data-drive="Helion Nova Lantern"><strong>Helion Nova Lantern</strong><small>655,750 RP</small></li><li data-drive="Helion Plasmajet Lantern"><strong>Helion Plasmajet Lantern</strong><small>695,750 RP</small></li></ul></section><section><h4>below 800k</h4><ul><li data-drive="Dusty Plasma Drive"><span>Dusty Plasma Drive</span><small>205,000 RP</small></li><li data-drive="Advanced Orion Drive"><span>Advanced Orion Drive</span><small>273,250 RP</small></li><li data-drive="Zeta Helion Lantern"><strong>Zeta Helion Lantern</strong><small>636,250 RP</small></li><li data-drive="Antimatter Plasma Core Torch"><strong>Antimatter Plasma Core Torch</strong><small>769,250 RP</small></li><li data-drive="Zeta Borane Lantern"><strong>Zeta Borane Lantern</strong><small>791,250 RP</small></li></ul></section><section><h4>800k and above</h4><ul><li data-drive="Pion Torch"><strong>Pion Torch</strong><small>1,642,775 RP</small></li></ul></section></div></section></div>
+
+  <footer class="foot note">
+    Research totals are the full prereq closure, with shared prereqs counted once. Alien drives are
+    left out &mdash; they arrive from captured hulls, not from research. Only x1 variants are plotted, so thrust
+    is per thruster. Bold entries in the brackets below match or beat the Helicon Drive on both axes.
+  </footer>
+</div>
+
+<style>
+#ft{position:relative;display:flex;flex-direction:column;width:100%;padding:20px 18px 18px;border:1px solid var(--rule);border-radius:3px;background:var(--card);color:var(--ink);font:400 14px/1.4 "Source Sans 3",ui-sans-serif,system-ui,sans-serif}
+#ft h2{margin:0;font:600 clamp(19px,2.4vw,24px)/1.1 "Archivo Narrow","Arial Narrow",sans-serif}
+#ft>p{margin:3px 0 14px;font:400 11px/1.3 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;color:var(--ink-faint)}
+#ft nav{display:flex;flex-wrap:wrap;gap:6px 8px;margin-bottom:12px}
+#ft button{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border:1px solid var(--rule-hard);border-radius:2px;background:transparent;color:var(--ink-soft);font:500 11px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+#ft button[aria-pressed=false]{opacity:.45;border-style:dashed;text-decoration:line-through}
+#ft button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#ft i{width:9px;height:9px;border-radius:1px;background:var(--c)}
+#ft svg{display:block;width:100%;min-height:390px;overflow:visible;background:var(--card-sunk)}
+#ft .axis text{fill:var(--ink-faint);font:400 11px/1 "IBM Plex Mono",ui-monospace,monospace}
+#ft .label{fill:var(--ink-soft);font:400 12px/1 "Source Sans 3",sans-serif}
+#ft .axis path,#ft .axis line,#ft [data-chart-frame]{stroke:var(--rule-hard)}
+#ft .grid line{stroke:var(--rule);stroke-opacity:.6}
+#ft .fit{stroke:var(--ink-soft);stroke-width:1.5;stroke-dasharray:5 4;opacity:.7}
+#ft circle{stroke:var(--card-sunk);stroke-width:1;opacity:.85}
+#ft circle.hot{stroke:var(--ink);stroke-width:2.5;opacity:1}
+#ft aside{position:absolute;pointer-events:none;display:none;z-index:2;max-width:250px;padding:9px 11px;border:1px solid var(--rule-hard);border-radius:2px;background:var(--card);color:var(--ink);font:400 13px/1.45 "Source Sans 3",sans-serif;box-shadow:0 6px 20px color-mix(in srgb,var(--ink) 22%,transparent)}
+#ft aside b{display:block;font:600 15px/1.2 "Archivo Narrow","Arial Narrow",sans-serif;letter-spacing:.01em}
+#ft footer{margin-top:8px;font:400 11px/1.4 "IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--ink-faint)}
+#ft .best{margin-top:24px;border-top:1px solid var(--rule);padding-top:18px}
+#ft .best h3{margin:0;font:600 12px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+#ft .best>p{margin:8px 0 16px;font-size:13.5px;color:var(--ink-soft)}
+#ft .brackets{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px 26px}
+#ft .brackets h4{margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid var(--rule);font:600 13px/1 "Archivo Narrow","Arial Narrow",sans-serif;letter-spacing:.06em;text-transform:uppercase}
+#ft .brackets ul{list-style:none;margin:0;padding:0}
+#ft .brackets li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0 4px 9px;border-left:2px solid var(--rule-hard)}
+#ft .brackets li:has(strong){border-left-color:var(--viz-series-1)}
+#ft .brackets strong{font-weight:600}
+#ft .brackets small{white-space:nowrap;font:400 12px/1.3 "IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink-faint)}
+@media (max-width: 780px) { #ft { padding: 16px 12px } }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script>
+(()=>{const R=document.getElementById("ft"),D=[{"n":"Apex Solid Rocket","c":"Chemical","e":2.6,"t":14820000,"r":100,"i":1,"p":"ReactionProducts","f":{"water":0,"volatiles":1,"metals":0,"nobleMetals":0,"fissiles":0,"antimatter":0,"exotics":0}},{"n":"Meteor Liquid Rocket","c":"Chemical","e":2.98,"t":15481000,"r":200,"i":2,"p":"ReactionProducts","f":{"water":0.6,"volatiles":0.4}},{"n":"Neutron Liquid Rocket","c":"Chemical","e":3.1,"t":20376000,"r":200,"i":2,"p":"ReactionProducts","f":{"volatiles":1}},{"n":"Venture Liquid Rocket","c":"Chemical","e":4.44,"t":9279600,"r":300,"i":3,"p":"ReactionProducts","f":{"water":1}},{"n":"Diana Superheavy Rocket","c":"Chemical","e":3.73,"t":20160000,"r":1500,"i":2,"p":"ReactionProducts","f":{"water":0.6,"volatiles":0.4}},{"n":"Nova Liquid Rocket","c":"Chemical","e":5.3,"t":7850000,"r":1800,"i":5,"p":"ReactionProducts","f":{"water":1}},{"n":"Super Kronos Liquid Rocket","c":"Chemical","e":21.6,"t":2500000,"r":61300,"i":15,"p":"ReactionProducts","f":{"volatiles":0.998,"fissiles":0.002}},{"n":"Tungsten Resistojet","c":"Electrothermal","e":9.8,"t":9900,"r":1950,"i":4,"p":"Hydrogen","f":{"water":1}},{"n":"E-Beam Drive","c":"Electrothermal","e":19.62,"t":4600,"r":2950,"i":5,"p":"Anything","f":{"metals":1}},{"n":"Amplitron Drive","c":"Electrothermal","e":9.81,"t":12000,"r":1950,"i":4,"p":"Water","f":{"water":1}},{"n":"Ion Drive","c":"Electrostatic","e":78.4,"t":3300,"r":6550,"i":6,"p":"NobleGases","f":{"water":0.9,"metals":0.1}},{"n":"Colloid Drive","c":"Electrostatic","e":43,"t":8000,"r":6550,"i":6,"p":"Volatiles","f":{"volatiles":1}},{"n":"Grid Drive","c":"Electrostatic","e":210,"t":10000,"r":20300,"i":12,"p":"NobleGases","f":{"water":0.9,"metals":0.1}},{"n":"VASIMR","c":"Electromagnetic","e":147,"t":1000,"r":3150,"i":4,"p":"Hydrogen","f":{"water":1}},{"n":"Ponderomotive VASIMR","c":"Electromagnetic","e":147,"t":2250,"r":26050,"i":10,"p":"Hydrogen","f":{"water":1}},{"n":"Pulsed Plasmoid Drive","c":"Electromagnetic","e":425,"t":2200,"r":22250,"i":9,"p":"Anything","f":{"metals":1}},{"n":"Plasma Wave Drive","c":"Electromagnetic","e":78.4,"t":1200,"r":7450,"i":6,"p":"Anything","f":{"metals":1}},{"n":"Lorentz Drive","c":"Electromagnetic","e":110,"t":20000,"r":33300,"i":12,"p":"NobleGases","f":{"water":0.75,"metals":0.25}},{"n":"Helicon Drive","c":"Electromagnetic","e":314,"t":20000,"r":34500,"i":13,"p":"NobleGases","f":{"water":0.9,"metals":0.1}},{"n":"Mass Driver","c":"Electromagnetic","e":9.81,"t":12000,"r":2950,"i":4,"p":"Anything","f":{"metals":1}},{"n":"Superconducting Mass Driver","c":"Electromagnetic","e":22,"t":28000,"r":25450,"i":10,"p":"Anything","f":{"metals":1}},{"n":"Kiwi Drive","c":"Fission_Thermal","e":8.77,"t":33000,"r":10450,"i":8,"p":"Hydrogen","f":{"water":1}},{"n":"Nerva Drive","c":"Fission_Thermal","e":8.09,"t":49000,"r":9300,"i":6,"p":"Hydrogen","f":{"water":1}},{"n":"Snare Drive","c":"Fission_Thermal","e":8.83,"t":73000,"r":11500,"i":9,"p":"Hydrogen","f":{"water":1}},{"n":"Rover Drive","c":"Fission_Thermal","e":8.18,"t":245000,"r":12650,"i":10,"p":"Hydrogen","f":{"water":1}},{"n":"Cermet Nerva","c":"Fission_Thermal","e":9.81,"t":134400,"r":10050,"i":7,"p":"Hydrogen","f":{"water":1}},{"n":"Advanced Nerva Drive","c":"Fission_Thermal","e":8.09,"t":334061,"r":10300,"i":7,"p":"Hydrogen","f":{"water":1}},{"n":"Dumbo","c":"Fission_Thermal","e":8.3,"t":400000,"r":10500,"i":7,"p":"Hydrogen","f":{"water":1}},{"n":"Advanced Cermet Nerva","c":"Fission_Thermal","e":9.12,"t":445267,"r":13050,"i":10,"p":"Hydrogen","f":{"water":1}},{"n":"Heavy Dumbo","c":"Fission_Thermal","e":8.09,"t":3500000,"r":14300,"i":10,"p":"Hydrogen","f":{"water":1}},{"n":"Pulsar Drive","c":"Fission_Thermal","e":16,"t":180000,"r":66900,"i":20,"p":"Hydrogen","f":{"water":1}},{"n":"Advanced Pulsar Drive","c":"Fission_Thermal","e":32,"t":240000,"r":84900,"i":25,"p":"Hydrogen","f":{"water":1}},{"n":"Pebble Drive","c":"Fission_Thermal","e":9.81,"t":172700,"r":14400,"i":11,"p":"Hydrogen","f":{"water":1}},{"n":"Advanced Pebble Drive","c":"Fission_Thermal","e":9.81,"t":333617,"r":17100,"i":13,"p":"Hydrogen","f":{"water":1}},{"n":"Lars Drive","c":"Fission_Thermal","e":19.62,"t":98000,"r":21750,"i":8,"p":"Hydrogen","f":{"water":1}},{"n":"Teardrop Drive","c":"Fission_Thermal","e":19.62,"t":333000,"r":23250,"i":9,"p":"Hydrogen","f":{"water":0.995,"fissiles":0.005}},{"n":"Fission Spinner Drive","c":"Fission_Thermal","e":17.7,"t":540000,"r":27750,"i":10,"p":"Hydrogen","f":{"water":0.995,"fissiles":0.005}},{"n":"Pegasus Drive","c":"Fission_Thermal","e":16,"t":7000000,"r":45250,"i":13,"p":"Hydrogen","f":{"water":0.995,"fissiles":0.005}},{"n":"Vortex Drive","c":"Fission_Thermal","e":19.62,"t":504000,"r":47250,"i":13,"p":"Hydrogen","f":{"water":0.995,"fissiles":0.005}},{"n":"Advanced Vortex Drive","c":"Fission_Thermal","e":24.48,"t":504000,"r":70250,"i":19,"p":"Hydrogen","f":{"water":0.995,"fissiles":0.005}},{"n":"Cavity Drive","c":"Fission_Thermal","e":20.4,"t":56400,"r":45300,"i":12,"p":"Hydrogen","f":{"water":0.98,"volatiles":0.01,"nobleMetals":0.01}},{"n":"Advanced Cavity Drive","c":"Fission_Thermal","e":30.88,"t":330000,"r":86500,"i":23,"p":"Hydrogen","f":{"water":0.98,"volatiles":0.01,"nobleMetals":0.01}},{"n":"Quartz Drive","c":"Fission_Thermal","e":18.3,"t":117700,"r":43500,"i":10,"p":"Hydrogen","f":{"water":0.99,"volatiles":0.01}},{"n":"Lightbulb Drive","c":"Fission_Thermal","e":20.4,"t":409000,"r":45000,"i":11,"p":"Hydrogen","f":{"water":0.99,"volatiles":0.01}},{"n":"Pharos Drive","c":"Fission_Thermal","e":25.5,"t":890000,"r":68000,"i":16,"p":"Hydrogen","f":{"water":0.98,"volatiles":0.01,"nobleMetals":0.01}},{"n":"Lodestar Fission Lantern","c":"Fission_Thermal","e":31.4,"t":11000000,"r":136500,"i":23,"p":"Hydrogen","f":{"water":0.98,"volatiles":0.01,"nobleMetals":0.01}},{"n":"Fission Frag Drive","c":"Fission_Thermal","e":313.9,"t":4651,"r":13000,"i":10,"p":"ReactionProducts","f":{"fissiles":1}},{"n":"Dusty Plasma Drive","c":"Fission_Thermal","e":3750,"t":5504,"r":205000,"i":24,"p":"ReactionProducts","f":{"fissiles":1}},{"n":"Burner Drive","c":"Fission_Thermal","e":69,"t":108000,"r":66000,"i":14,"p":"Hydrogen","f":{"water":0.98,"nobleMetals":0.01,"fissiles":0.01}},{"n":"Flare Drive","c":"Fission_Thermal","e":35,"t":3500000,"r":151500,"i":24,"p":"Hydrogen","f":{"water":0.98,"nobleMetals":0.01,"fissiles":0.01}},{"n":"Firestar Fission Lantern","c":"Fission_Thermal","e":50,"t":5000000,"r":180000,"i":27,"p":"Hydrogen","f":{"water":0.98,"nobleMetals":0.01,"fissiles":0.01}},{"n":"Neutron Flux Lantern","c":"NuclearSaltWater","e":66,"t":12900000,"r":146750,"i":19,"p":"Water","f":{"water":0.65,"volatiles":0.15,"fissiles":0.2}},{"n":"Z-pinch Microfission Drive","c":"Fission_Pulse","e":156.96,"t":24000,"r":256750,"i":21,"p":"ReactionProducts","f":{"water":0.9,"fissiles":0.1}},{"n":"Neutronium Microfission Drive","c":"Fission_Pulse","e":156.96,"t":180000,"r":178775,"i":25,"p":"ReactionProducts","f":{"water":0.99,"fissiles":0.01}},{"n":"Antimatter Microfission Drive","c":"Fission_Pulse","e":132.44,"t":275000,"r":108250,"i":18,"p":"ReactionProducts","f":{"water":0.99,"fissiles":0.01,"antimatter":3e-16}},{"n":"Minimag Orion","c":"Fission_Pulse","e":93.16,"t":642000,"r":261750,"i":22,"p":"ReactionProducts","f":{"metals":0.625,"nobleMetals":0.35,"fissiles":0.025}},{"n":"Advanced Minimag Orion","c":"Fission_Pulse","e":157,"t":1870000,"r":271750,"i":23,"p":"ReactionProducts","f":{"metals":0.625,"nobleMetals":0.35,"fissiles":0.025}},{"n":"Orion Drive","c":"Fission_Pulse","e":42.1,"t":16000000,"r":49750,"i":9,"p":"ReactionProducts","f":{"metals":0.65,"nobleMetals":0.3,"fissiles":0.05}},{"n":"Advanced Orion Drive","c":"Fission_Pulse","e":120,"t":24000000,"r":273250,"i":32,"p":"ReactionProducts","f":{"metals":0.65,"nobleMetals":0.3,"fissiles":0.05}},{"n":"Triton Fusor Drive","c":"Fusion_Thermal","e":364,"t":38500,"r":310250,"i":24,"p":"ReactionProducts","f":{"water":0.75,"metals":0.24,"fissiles":0.01}},{"n":"Deuteron Fusor Drive","c":"Fusion_Thermal","e":1250,"t":19200,"r":397750,"i":27,"p":"ReactionProducts","f":{"water":0.76,"metals":0.24}},{"n":"Protium Fusor Drive","c":"Fusion_Thermal","e":1818,"t":55173,"r":813775,"i":40,"p":"ReactionProducts","f":{"water":0.76,"metals":0.24}},{"n":"Triton Reflex Drive","c":"Fusion_Thermal","e":317,"t":75600,"r":297750,"i":23,"p":"Hydrogen","f":{"water":0.99,"fissiles":0.01}},{"n":"Deuteron Reflex Drive","c":"Fusion_Thermal","e":833,"t":60000,"r":390250,"i":26,"p":"Hydrogen","f":{"water":1}},{"n":"Helion Reflex Drive","c":"Fusion_Thermal","e":741,"t":97524,"r":483750,"i":29,"p":"Hydrogen","f":{"water":0.9,"fissiles":0.1}},{"n":"Triton Torus Drive","c":"Fusion_Thermal","e":308,"t":117000,"r":362750,"i":26,"p":"Hydrogen","f":{"water":0.99,"fissiles":0.01}},{"n":"Deuteron Torus Drive","c":"Fusion_Thermal","e":769,"t":156000,"r":457750,"i":29,"p":"Hydrogen","f":{"water":1}},{"n":"Helion Torus Lantern","c":"Fusion_Thermal","e":690,"t":556800,"r":571250,"i":32,"p":"Hydrogen","f":{"water":0.9,"fissiles":0.1}},{"n":"Protium Torus Lantern","c":"Fusion_Thermal","e":952,"t":1680000,"r":956275,"i":43,"p":"Hydrogen","f":{"water":1}},{"n":"Triton Polywell Drive","c":"Fusion_Thermal","e":276,"t":174000,"r":320250,"i":24,"p":"Hydrogen","f":{"water":0.89,"metals":0.1,"fissiles":0.01}},{"n":"Deuteron Polywell Drive","c":"Fusion_Thermal","e":597,"t":251250,"r":437750,"i":27,"p":"Hydrogen","f":{"water":0.9,"metals":0.1}},{"n":"Helion Plasmajet Lantern","c":"Fusion_Thermal","e":548,"t":1095000,"r":695750,"i":37,"p":"Hydrogen","f":{"water":0.8,"metals":0.1,"fissiles":0.1}},{"n":"Borane Plasmajet Torch","c":"Fusion_Thermal","e":714,"t":5040000,"r":1119250,"i":49,"p":"Hydrogen","f":{"water":0.8,"volatiles":0.1,"metals":0.1}},{"n":"Zeta Triton Drive","c":"Fusion_Thermal","e":392,"t":183600,"r":371250,"i":26,"p":"ReactionProducts","f":{"water":0.99,"fissiles":0.01}},{"n":"Zeta Deuteron Drive","c":"Fusion_Thermal","e":1667,"t":108000,"r":486250,"i":29,"p":"ReactionProducts","f":{"water":1}},{"n":"Zeta Deuteron Torch","c":"Fusion_Thermal","e":3334,"t":720000,"r":1161275,"i":44,"p":"ReactionProducts","f":{"water":1}},{"n":"Zeta Helion Lantern","c":"Fusion_Thermal","e":1335,"t":600000,"r":636250,"i":31,"p":"ReactionProducts","f":{"water":0.9,"fissiles":0.1}},{"n":"Zeta Borane Lantern","c":"Fusion_Thermal","e":3077,"t":416000,"r":791250,"i":34,"p":"ReactionProducts","f":{"water":0.8,"volatiles":0.1,"metals":0.1}},{"n":"Triton Nova Drive","c":"Fusion_Thermal","e":270,"t":355200,"r":424750,"i":31,"p":"Hydrogen","f":{"water":0.98,"nobleMetals":0.01,"fissiles":0.01}},{"n":"Deuteron Nova Lantern","c":"Fusion_Thermal","e":572,"t":420000,"r":530750,"i":34,"p":"Hydrogen","f":{"water":0.99,"nobleMetals":0.01}},{"n":"Helion Nova Lantern","c":"Fusion_Thermal","e":527,"t":1900000,"r":655750,"i":36,"p":"Hydrogen","f":{"water":0.89,"nobleMetals":0.01,"fissiles":0.1}},{"n":"Helion Nova Torch","c":"Fusion_Thermal","e":9210,"t":663000,"r":840750,"i":39,"p":"Hydrogen","f":{"water":0.89,"nobleMetals":0.01,"fissiles":0.1}},{"n":"Borane Nova Lantern","c":"Fusion_Thermal","e":678,"t":2669750,"r":1045775,"i":48,"p":"Hydrogen","f":{"water":0.79,"volatiles":0.1,"metals":0.1,"nobleMetals":0.01}},{"n":"Protium Nova Torch","c":"Fusion_Thermal","e":1000,"t":6600000,"r":1405775,"i":51,"p":"Hydrogen","f":{"water":0.99,"nobleMetals":0.01}},{"n":"Protium Converter Torch","c":"Fusion_Thermal","e":10256,"t":9760000,"r":3370775,"i":88,"p":"ReactionProducts","f":{"water":0.99,"nobleMetals":0.01}},{"n":"Antimatter Pulsed Plasma Core Lantern","c":"Antimatter","e":360,"t":1100000,"r":644250,"i":48,"p":"Hydrogen","f":{"water":0.999982,"antimatter":0.000018}},{"n":"Antimatter Plasma Core Torch","c":"Antimatter","e":820,"t":2540000,"r":769250,"i":50,"p":"Hydrogen","f":{"water":0.999959,"antimatter":0.000041}},{"n":"Advanced Antimatter Plasma Core Torch","c":"Antimatter","e":4400,"t":4900000,"r":1112775,"i":58,"p":"Hydrogen","f":{"water":0.99978,"antimatter":0.00022}},{"n":"Pion Torch","c":"Antimatter","e":14720,"t":10000000,"r":1642775,"i":58,"p":"ReactionProducts","f":{"water":0.5,"antimatter":0.5}},{"n":"Resistojet","c":"Electrothermal","e":2.9,"t":1000,"r":1850,"i":4,"p":"Hydrogen","f":{"water":1}},{"n":"Arcjet Drive","c":"Electrothermal","e":19.6,"t":1000,"r":1950,"i":4,"p":"Hydrogen","f":{"water":1}},{"n":"Hall Drive","c":"Electrostatic","e":19.62,"t":3300,"r":6350,"i":6,"p":"Metals","f":{"metals":1}}],S=d3.select(R.querySelector("svg")),T=R.querySelector("aside"),F=R.querySelector("footer"),C=[...new Set(D.map(d=>d.c))],A=new Set(C),K=new Map(C.map((c,i)=>[c,"var(--viz-series-"+(i%6+1)+")"])),nice=s=>s.replace(/([a-z])([A-Z])/g,"$1 $2").replaceAll("_"," "),fmt=v=>v>=1e6?(v/1e6).toFixed(v>=1e7?0:1)+" MN":v>=1e3?(v/1e3).toFixed(v>=1e5?0:1)+" kN":v+" N";
+function stats(d){const x=d.map(v=>Math.log10(v.e)),y=d.map(v=>Math.log10(v.t)),mx=d3.mean(x),my=d3.mean(y),xx=d3.sum(x,v=>(v-mx)**2),xy=d3.sum(x.map((v,i)=>(v-mx)*(y[i]-my)));return{r:xy/Math.sqrt(xx*d3.sum(y,v=>(v-my)**2)),a:my-xy/xx*mx,b:xy/xx}}
+function showTip(ev,n){if(!n)return;const mix=Object.entries(n.f||{}).filter(([,v])=>v>0).map(([k,v])=>d3.format(".3~g")(v*100)+"% "+nice(k)).join(", ");T.style.display="block";T.innerHTML="<b>"+n.n+"</b>"+nice(n.c)+"<br>EV: "+d3.format(",~g")(n.e)+" km/s<br>Thrust: "+d3.format(",")(n.t)+" N<br>Fuel: "+nice(n.p)+(mix?" ("+mix+")":"")+"<br>Research: "+(Number.isFinite(n.r)?d3.format(",")(n.r)+" RP across "+n.i+" items":"not researchable");const b=R.getBoundingClientRect(),u=T.getBoundingClientRect();T.style.left=Math.min(R.clientWidth-u.width-4,ev.clientX-b.left+12)+"px";T.style.top=Math.max(0,ev.clientY-b.top-u.height-10)+"px"}
+const B=d3.select(R.querySelector("nav")).selectAll("button").data(C).join("button").attr("type","button").attr("aria-pressed","true").on("click",function(_,c){A.has(c)?A.delete(c):A.add(c);d3.select(this).attr("aria-pressed",A.has(c));draw()});B.append("i").style("--c",c=>K.get(c));B.append("span").text(nice);
+function draw(){const w=Math.max(320,R.clientWidth),h=w<420?420:440,m={top:12,right:18,bottom:58,left:w<420?64:76},d=D.filter(v=>A.has(v.c));S.attr("viewBox",`0 0 ${w} ${h}`).attr("height",h).selectAll("*").remove();const x=d3.scaleLog().domain(d3.extent(D,v=>v.e)).nice().range([m.left,w-m.right]),y=d3.scaleLog().domain(d3.extent(D,v=>v.t)).nice().range([h-m.bottom,m.top]);
+S.append("rect").attr("data-chart-frame","").attr("x",m.left).attr("y",m.top).attr("width",w-m.left-m.right).attr("height",h-m.top-m.bottom).attr("fill","none");S.append("g").attr("class","grid").attr("transform",`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).ticks(w<420?4:7).tickSize(-(h-m.top-m.bottom)).tickFormat(""));S.append("g").attr("class","grid").attr("transform",`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(6).tickSize(-(w-m.left-m.right)).tickFormat(""));S.append("g").attr("class","axis").attr("transform",`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).ticks(w<420?4:7,"~s"));S.append("g").attr("class","axis").attr("transform",`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(y.tickFormat(6,fmt)));S.append("text").attr("class","label").attr("data-axis","x").attr("x",(m.left+w-m.right)/2).attr("y",h-10).attr("text-anchor","middle").text("Exhaust velocity, EV (km/s) — higher is more fuel-efficient");S.append("text").attr("class","label").attr("data-axis","y").attr("transform","rotate(-90)").attr("x",-(m.top+h-m.bottom)/2).attr("y",14).attr("text-anchor","middle").text("Thrust per drive (N)");
+if(d.length>1){const z=stats(d),e=d3.extent(d,v=>v.e);S.append("line").attr("class","fit").attr("x1",x(e[0])).attr("y1",y(10**(z.a+z.b*Math.log10(e[0])))).attr("x2",x(e[1])).attr("y2",y(10**(z.a+z.b*Math.log10(e[1]))))}
+const costs=D.map(v=>v.r).filter(Number.isFinite),radius=d3.scaleSqrt().domain(d3.extent(costs)).range([3,16]);S.append("g").selectAll("circle").data(d).join("circle").attr("cx",v=>x(v.e)).attr("cy",v=>y(v.t)).attr("r",v=>Number.isFinite(v.r)?radius(v.r):3).attr("fill",v=>K.get(v.c));S.append("rect").attr("data-chart-hit","").attr("data-chart-hover-overlay","cross-series").attr("x",m.left).attr("y",m.top).attr("width",w-m.left-m.right).attr("height",h-m.top-m.bottom).attr("fill","transparent").on("pointermove",function(ev){const[p,q]=d3.pointer(ev,this),n=d3.least(d,v=>Math.hypot(x(v.e)-p,y(v.t)-q));S.selectAll("circle").classed("hot",v=>v===n);showTip(ev,n)}).on("pointerleave",()=>{T.style.display="none";S.selectAll("circle").classed("hot",false)});F.textContent=d.length>1?d.length+" designs · log–log Pearson r = "+stats(d).r.toFixed(2)+" · dashed line = linear fit in log space":"Select at least two classifications to calculate correlation"}
+R.querySelector(".best").addEventListener("pointermove",ev=>{const row=ev.target.closest("[data-drive]");row?showTip(ev,D.find(d=>d.n===row.dataset.drive)):T.style.display="none"});R.querySelector(".best").addEventListener("pointerleave",()=>T.style.display="none");new ResizeObserver(draw).observe(R);draw()})();
+</script>
