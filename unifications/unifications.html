@@ -273,7 +273,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
 
 <div class="wrap">
   <header class="masthead">
-    <span class="eyebrow">Terra Invicta &middot; 1962 start</span>
+    <span class="eyebrow">Terra Invicta &middot; Broken Earth</span>
     <h1>Unification Atlas</h1>
     <p>
       Every mega-nation you can build from the claim graph, ranked by the people it gathers.
@@ -305,7 +305,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     Claims belong to a nation, not to whoever holds its land &mdash; unify a nation and its claims die with it.
     Phases are therefore ordered deepest-first: every nation spends its own claims before it is swallowed.
     Research totals are the full prereq closure, with shared prereqs counted once. Dashed project tags arrive
-    from events and cannot be researched. Rows marked FORM FIRST belong to nations that hold no land at the 1962 start.
+    from events and cannot be researched. Rows marked FORM FIRST belong to nations that hold no land at the Broken Earth start.
   </footer>
 </div>
 
@@ -369,7 +369,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       </summary>
       <div class="detail" id="${detailId}">
         <section>
-          ${b.latent ? `<h3>Before anything else</h3><p class="note" style="margin:0">${esc(b.name)} holds no land in 1962 &mdash; ${esc(b.latent)} sits on its capital. Everything below waits on an event that puts it back on the map.</p>` : ""}
+          ${b.latent ? `<h3>Before anything else</h3><p class="note" style="margin:0">${esc(b.name)} holds no land at the start &mdash; ${esc(b.latent)} sits on its capital. Everything below waits on an event that puts it back on the map.</p>` : ""}
           <h3>Order of operations</h3>
           ${b.phases
             .map(
