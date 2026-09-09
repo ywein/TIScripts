@@ -67,3 +67,6 @@ assert.equal(
   "Frugal",
 );
 assert.equal(pickBest([{ n: "Stranded", accel_ms2: 0.001, supplyMonths: 0.01 }]), null);
+// However well it flies, a ship that has to be four fifths propellant is not a design.
+assert.equal(driveScore({ accel_ms2: 1, supplyMonths: 0.1, propellantRatio: 24 }), null);
+assert.ok(driveScore({ accel_ms2: 1, supplyMonths: 0.1, propellantRatio: 2.69 }) !== null);

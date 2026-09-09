@@ -3,15 +3,20 @@
 const path = require("node:path");
 const { loadPropulsion } = require("./propulsion");
 
-// What a drive is worth for a given ship: acceleration on a log scale, credited only between the
+// What a drive is worth for a given ship: nothing at all if the trip would need more propellant
+// than the ship could plausibly carry — a chemical rocket keeps its place on the frontier forever
+// because nothing beats its thrust, but wanting 24 times its own mass in propellant settles it.
+// Otherwise acceptance is acceleration on a log scale, credited only between the
 // point it becomes usable at all and the point where more of it stops buying anything, minus what
 // the trip costs in months of production on the same scale. Injected verbatim into the page, which
 // re-runs it against whatever hull and Δv you type in — this is the only copy of the formula.
-function driveScore({ accel_ms2, supplyMonths }) {
+function driveScore({ accel_ms2, supplyMonths, propellantRatio }) {
   const USABLE = 0.02; // m/s^2 — tiny but flyable, the reference point
   const GOOD = 0.1; // more acceleration than this is pleasant, not valuable
   const DEAD = 0.005; // below this the drive cannot usefully move the ship at all
+  const TANKAGE = 3; // tons of propellant per ton of ship before the design is a joke
   if (!(accel_ms2 >= DEAD) || !(supplyMonths > 0)) return null;
+  if (propellantRatio > TANKAGE) return null;
   return Math.log10(Math.min(accel_ms2, GOOD) / USABLE) - Math.log10(supplyMonths);
 }
 
