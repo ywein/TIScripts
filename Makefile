@@ -2,10 +2,10 @@ TEMPLATES := templates
 
 all: drives/fuel-efficiency-thrust.html unifications/unifications.html
 
-drives/fuel-efficiency-thrust.html: drives/build-chart.js drives/fuel-efficiency-thrust.template.html drives/best-drives.js drives/research-costs.js $(wildcard $(TEMPLATES)/*)
+drives/fuel-efficiency-thrust.html: drives/build-chart.js drives/fuel-efficiency-thrust.template.html drives/best-drives.js drives/research-costs.js $(wildcard $(TEMPLATES)/*/Templates/* $(TEMPLATES)/*/l10n/*) templates.js
 	node drives/build-chart.js $(TEMPLATES)
 
-unifications/unifications.html: unifications/build-unifications.js unifications/unifications.template.html unifications/unifications.js drives/research-costs.js $(wildcard $(TEMPLATES)/*)
+unifications/unifications.html: unifications/build-unifications.js unifications/unifications.template.html unifications/unifications.js drives/research-costs.js $(wildcard $(TEMPLATES)/*/Templates/* $(TEMPLATES)/*/l10n/*) templates.js
 	node unifications/build-unifications.js $(TEMPLATES)
 
 test:

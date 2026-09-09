@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
-const { calculateResearchCosts, loadProjects } = require("./research-costs");
+const { calculateResearchCosts } = require("./research-costs");
+const { loadTemplates } = require("../templates");
 const TEMPLATES = require("node:path").join(__dirname, "..", "templates");
 
 const [drive] = calculateResearchCosts(
@@ -14,8 +15,8 @@ const [drive] = calculateResearchCosts(
 assert.equal(drive.totalResearchCost, 35, "shared prerequisites count once");
 assert.equal(drive.researchItems, 3);
 
-// The 1962 overlay replaces base records whole and removes wrong-scenario ones entirely.
-const merged = new Map(loadProjects(TEMPLATES).map((p) => [p.dataName, p]));
+// The broken_earth layer replaces base records whole and removes wrong-scenario ones entirely.
+const merged = new Map(loadTemplates(TEMPLATES, "TIProjectTemplate.json").map((p) => [p.dataName, p]));
 const rau = merged.get("Project_RegionalAfricanUnions");
 assert.equal(rau.researchCost, 1500); // overlay price, not the base 2500
 assert.deepEqual(rau.prereqs, ["Project_EastAfricanFederation"]); // base also required UnityMovements

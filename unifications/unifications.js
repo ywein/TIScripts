@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { loadTemplates, layers } = require("../templates");
 
 // Nations that claim the whole planet by fiat (aliens, Protectorate) — not unifications.
 const OMNI_NATIONS = new Set(["ALN", "1962_PRA"]);
@@ -12,8 +13,10 @@ const OMNI_NATIONS = new Set(["ALN", "1962_PRA"]);
 function loadNationNames(directory, scenario = "BrokenEarth") {
   const plain = new Map();
   const scenarioNames = new Map();
-  for (const file of fs.readdirSync(directory).filter((f) => /^TINationTemplate.*\.en$/.test(f))) {
-    for (const line of fs.readFileSync(path.join(directory, file), "utf8").split(/\r?\n/)) {
+  for (const dir of layers(directory, "l10n")) {
+    const file = path.join(dir, "TINationTemplate.en");
+    if (!fs.existsSync(file)) continue;
+    for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
       const [key, ...rest] = line.split("=");
       const match = key.match(/^TINationTemplate\.(displayName|unionDisplayName)\.([A-Za-z0-9_]+)(?:\.(\w+))?$/);
       if (!match || !rest.length) continue;
@@ -31,8 +34,8 @@ function loadNationNames(directory, scenario = "BrokenEarth") {
 }
 
 // One place that knows which files make a world, so the CLI and the page can never drift apart.
-function loadWorld(directory = __dirname) {
-  const read = (file) => JSON.parse(fs.readFileSync(path.join(directory, file), "utf8"));
+function loadWorld(directory = path.join(__dirname, "..", "templates")) {
+  const read = (file) => loadTemplates(directory, file);
   const displayName = loadNationNames(directory);
   return buildWorld(
     read("TIBilateralTemplate.json").filter((r) => r.relationType === "Claim"),

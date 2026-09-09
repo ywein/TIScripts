@@ -49,6 +49,7 @@ An untagged record is in every scenario.
 
 ## Status
 
-We target `broken_earth`. The build scripts (`drives/build-chart.js`,
-`unifications/build-unifications.js`) still take one flat template directory and do not yet
-walk `base` + addon — that layering lives in `loadProjects` / `loadNationNames` only.
+We target `broken_earth`. Every script reads through `templates.js` (`loadTemplates` / `layers`),
+which implements the rules above; the manifest in the addon's `TIMetaTemplate.json` is not read —
+for the four parallel-record templates it lists exactly the addon file's own records (plus `ALN`,
+which we skip as an omni-nation anyway), so taking the addon file whole is the same set.

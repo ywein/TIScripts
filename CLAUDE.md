@@ -42,14 +42,13 @@ are mutually exclusive scenarios. `docs/templates/templates.md` explains the lay
 `scenarioTags` filtering, suffixed l10n keys).
 
 We target the **broken_earth** scenario (`PostApoc` / `BrokenEarth` tags — the defaults hardcoded
-in `loadProjects` and `loadNationNames`).
+in `templates.js` and `loadNationNames`).
 
-**Known broken state:** `templates/` is now split into `base/`, `broken_earth/`, `2003/`
-subdirectories, but the build scripts and tests still expect one *flat* directory of merged
-`Templates/*.json` + `l10n/*.en`. `make` and `make test` fail as of the last commit. Only
-`loadProjects` (drives/research-costs.js) and `loadNationNames` (unifications/unifications.js)
-know about layering, and they do it by globbing prefix-matched filenames within one flat dir.
-Wiring the scripts to walk `base` + addon is the outstanding work.
+`templates.js` at the repo root is the only place that knows the layout: `loadTemplates(root,
+file)` merges `base/Templates/<file>` under `broken_earth/Templates/<file>` by `dataName` and
+drops records tagged for another scenario, except for the four parallel-record templates
+(region, nation, army, bilateral) which come from the addon alone. `layers(root, kind)` gives the
+base+addon directory pair, which is how `loadNationNames` finds both l10n files.
 
 ## Domain logic worth knowing
 

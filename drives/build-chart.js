@@ -2,14 +2,15 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { calculateResearchCosts, loadProjects } = require("./research-costs");
+const { calculateResearchCosts } = require("./research-costs");
 const { bestByBracket } = require("./best-drives");
+const { loadTemplates } = require("../templates");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
-const load = (name) => JSON.parse(fs.readFileSync(path.join(templates, name), "utf8"));
+const load = (name) => loadTemplates(templates, name);
 const drives = calculateResearchCosts(
   load("TIDriveTemplate.json"),
-  loadProjects(templates),
+  load("TIProjectTemplate.json"),
   load("TITechTemplate.json"),
 );
 // Alien drives are loot, not a research target: they only ever arrive from captured hulls.

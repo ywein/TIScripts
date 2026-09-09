@@ -2,15 +2,13 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { researchClosure, loadProjects } = require("../drives/research-costs");
+const { researchClosure } = require("../drives/research-costs");
+const { loadTemplates } = require("../templates");
 const { loadWorld, unify, topBlocs, latentStarts, plan, risks, population, holdings, region, short, name } = require("./unifications");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
-const load = (file) => JSON.parse(fs.readFileSync(path.join(templates, file), "utf8"));
-
-const projectTemplates = loadProjects(templates);
-
-const techTemplates = load("TITechTemplate.json");
+const projectTemplates = loadTemplates(templates, "TIProjectTemplate.json");
+const techTemplates = loadTemplates(templates, "TITechTemplate.json");
 const projectTemplate = new Map(projectTemplates.map((p) => [p.dataName, p]));
 // A handful of claim unlocks (the BSBE set) have no entry in the project tree: they arrive from
 // events, not research, so they carry no price and cannot be planned for.

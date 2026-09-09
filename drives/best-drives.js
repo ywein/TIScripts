@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
 const path = require("node:path");
 const { calculateResearchCosts } = require("./research-costs");
+const { loadTemplates } = require("../templates");
 
 const CAPS = [100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000];
 
@@ -44,8 +44,8 @@ function bestByBracket(drives) {
 }
 
 function main() {
-  const directory = path.resolve(process.argv[2] || ".");
-  const load = (name) => JSON.parse(fs.readFileSync(path.join(directory, name), "utf8"));
+  const directory = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
+  const load = (name) => loadTemplates(directory, name);
   const drives = calculateResearchCosts(
     load("TIDriveTemplate.json"),
     load("TIProjectTemplate.json"),
