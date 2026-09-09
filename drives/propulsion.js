@@ -6,8 +6,9 @@ const { loadTemplates } = require("../templates");
 
 // "req power" and "thrustRating_GW" arrive as strings with thousands separators.
 const num = (value) => Number(String(value ?? 0).replaceAll(",", "")) || 0;
-// A mid-tier droplet radiator, used as the reference for every drive so the numbers compare.
-const RADIATOR = "TinDroplet";
+// One reference radiator for every drive so the numbers compare. Dusty Plasma rejects 18 kW/kg,
+// which is what keeps the high-end drives from drowning in radiator mass.
+const RADIATOR = "DustyPlasma";
 const isAlien = (item) => (item.requiredProjectName || "").startsWith("Project_Alien");
 
 // Drive mass is the flat hull mass plus a per-jet-watt term; open-cycle drives (chemical,
@@ -57,13 +58,10 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
     const options = (power > 0 ? viablePlants(plants, drive) : [])
       .map((plant) => {
         const heat = radiator ? wasteHeat_GW(drive, plant) : 0;
-        const cost = price(
-          [
-            drive.requiredProjectName,
-            plant.requiredProjectName,
-            heat > 0 && radiator.requiredProjectName,
-          ].filter(Boolean),
-        );
+        // The radiator's own research is deliberately left out: it is a fixed yardstick for
+        // mass, not something the drive forces you to unlock — a cheaper radiator only means a
+        // heavier ship. Rolling it in would put a ~285k RP floor under every drive.
+        const cost = price([drive.requiredProjectName, plant.requiredProjectName].filter(Boolean));
         return (
           cost && {
             plant,

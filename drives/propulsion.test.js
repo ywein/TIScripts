@@ -13,9 +13,8 @@ const projects = [
 ];
 const techs = [{ dataName: "shared", researchCost: 5 }];
 const radiators = [
-  { dataName: "TinDroplet", friendlyName: "Tin", specificPower_2s_KWkg: 8, requiredProjectName: "rad" },
+  { dataName: "DustyPlasma", friendlyName: "Dusty", specificPower_2s_KWkg: 8 },
 ];
-projects.push({ dataName: "rad", researchCost: 30, prereqs: ["shared"] });
 const drive = (fields) => ({
   requiredProjectName: "drive",
   requiredPowerPlant: "Fission",
@@ -40,7 +39,7 @@ assert.equal(big.plantMass_tons, 8); // 2 GW x 4 t/GW
 assert.equal(big.wasteHeat_GW, 0.5); // (1 - 0.75) x 2 GW
 assert.equal(big.radiatorMass_tons, 62.5); // 0.5 GW at 8 kW/kg
 assert.equal(big.mass_tons, 70.5);
-assert.equal(big.totalResearchCost, 65); // drive + plant + radiator, shared prereq once
+assert.equal(big.totalResearchCost, 35); // drive + plant, shared prereq once
 assert.equal(flat.powerPlant, null);
 assert.equal(flat.mass_tons, 50);
 assert.equal(flat.radiator, null, "open cycle radiates through the nozzle");
@@ -62,6 +61,6 @@ assert.equal(strict.mass_tons, null);
 const helicon = loadPropulsion(TEMPLATES).find((d) => d.friendlyName === "Helicon Drive x6");
 assert.equal(helicon.driveMass_tons, 0);
 assert.ok(helicon.plantMass_tons > 100, "reactor mass dominates an electric drive");
-assert.equal(helicon.radiator, "Tin Droplet");
-assert.ok(helicon.radiatorMass_tons > helicon.plantMass_tons, "and radiators dominate the reactor");
+assert.equal(helicon.radiator, "Dusty Plasma");
+assert.ok(helicon.radiatorMass_tons > 100, "and the radiator is a big chunk again");
 assert.ok(helicon.totalResearchCost > 0);

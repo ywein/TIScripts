@@ -61,8 +61,9 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   the cheapest-to-research viable plant and prices drive + plant as *one* closure. Open-cycle
   drives (`req power` 0) carry their own reactor via `flatMass_tons` / `specificPower_kgMW`.
   Waste heat is `(1 - plant efficiency) × req power` for anything not `cooling: "Open"`, rejected
-  by Tin Droplet radiators at `1000 / specificPower_2s_KWkg` tons per GW. Both formulas were
-  checked against the game's ship builder (Helicon x6: 286 t reactor, 521.8 t radiator).
+  by Dusty Plasma radiators at `1000 / specificPower_2s_KWkg` tons per GW. The radiator is a fixed
+  yardstick, so its own research is *not* in the closure — the drive's and the plant's are. Both formulas were
+  checked against the game's ship builder (Helicon x6: 286 t reactor, and 521.8 t of Tin Droplet radiator when `RADIATOR` was set to that).
   Propellant is not precomputed: the template's inline script applies the rocket equation to the
   hull mass and Δv typed into the page, so those two inputs stay client-side. Tanks and hull are not
   modelled.
