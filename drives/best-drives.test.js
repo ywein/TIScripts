@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const { bestByBracket, pareto } = require("./best-drives");
+const { bestByBracket, driveScore, pareto } = require("./best-drives");
 
 const drive = (name, cost, efficiency, thrust) => ({
   friendlyName: `${name} x1`,
@@ -14,11 +14,11 @@ const powerful = drive("Powerful", 40_000, 1, 3);
 const both = drive("Both", 90_000, 4, 4);
 
 assert.deepEqual(pareto([weak, efficient, powerful]), [efficient, powerful]);
-assert.deepEqual(
-  bestByBracket([weak, efficient, powerful, both])["below 100k"].map((d) => d.drive),
-  ["Both"],
-);
-assert.deepEqual(Object.keys(bestByBracket([weak])), [
+const bracket = (drives, label = "below 100k") =>
+  bestByBracket(drives).find((b) => b.label === label).drives;
+
+assert.deepEqual(bracket([weak, efficient, powerful, both]).map((d) => d.drive), ["Both"]);
+assert.deepEqual(bestByBracket([weak]).map((b) => b.label), [
   "below 100k",
   "below 200k",
   "below 300k",
@@ -30,36 +30,28 @@ assert.deepEqual(Object.keys(bestByBracket([weak])), [
   "800k and above",
 ]);
 
-// A drive that dominates the frontier but bankrupts you does not hide the one you would fly:
-// the usable pick gets its own frontier and is listed even when the strong drive covers it.
-const torch = (name, cost, efficiency, thrust, supplyMonths) => ({
+// The strongest drive in a bracket is the one that does the most with its propellant, whatever
+// that propellant costs — the frontier is ranked on jet power alone.
+const torch = (name, cost, efficiency, thrust) => ({
   ...drive(name, cost, efficiency, thrust),
   thrustRating_GW: (efficiency * thrust) / 2,
-  supplyMonths,
 });
-const [ruinous, flyable] = [
-  torch("Ruinous", 50_000, 10, 10, 1000),
-  torch("Flyable", 60_000, 8, 8, 10), // half the drive on both axes, a hundredth of the bill
-];
-const listed = bestByBracket([ruinous, flyable])["below 100k"];
 assert.deepEqual(
-  listed.map((d) => [d.drive, d.best, d.bestUsable]),
+  bracket([torch("Meek", 10_000, 12, 6), torch("Mighty", 20_000, 10, 10)]).map((d) => [d.drive, d.best]),
   [
-    ["Ruinous", true, false],
-    ["Flyable", false, true],
+    ["Meek", false],
+    ["Mighty", true],
   ],
 );
-// Nothing to escape from: the strongest drive is already cheap to run, so nothing else is tagged.
-assert.deepEqual(
-  bestByBracket([torch("Cheap", 10_000, 8, 8, 0), torch("Strong", 20_000, 10, 10, 0)])[
-    "below 100k"
-  ].map((d) => [d.drive, d.best, d.bestUsable]),
-  [["Strong", true, false]],
+
+// Acceleration is worth having up to the point it stops mattering, and a trip you cannot supply
+// is worth nothing — so a tenth of the acceleration has to come with a tenth of the bill.
+const score = (accel_ms2, supplyMonths) => driveScore({ accel_ms2, supplyMonths });
+assert.equal(score(0.004, 0.01), null, "cannot move the ship at all");
+assert.ok(
+  Math.abs(score(0.1, 1) - score(0.02, 0.2)) < 1e-12,
+  "a fifth the acceleration for a fifth the bill",
 );
-// A cheap drive that is not most of the strong drive is no answer to it.
-assert.deepEqual(
-  bestByBracket([torch("Ruinous", 50_000, 10, 10, 1000), torch("Feeble", 60_000, 2, 10, 0)])[
-    "below 100k"
-  ].map((d) => [d.drive, d.best, d.bestUsable]),
-  [["Ruinous", true, false]],
-);
+assert.ok(score(1, 1) === score(0.1, 1), "acceleration past 0.1 buys nothing");
+assert.ok(score(0.05, 0.1) > score(0.05, 1), "cheaper to run is better");
+assert.ok(score(0.05, 0.5) > score(0.01, 0.5), "faster is better");

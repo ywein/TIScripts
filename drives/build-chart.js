@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { bestByBracket, largestVariants } = require("./best-drives");
+const { bestByBracket, driveScore, largestVariants } = require("./best-drives");
 const { loadPropulsion } = require("./propulsion");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
@@ -32,37 +32,29 @@ const chartData = largestVariants(drives)
   }));
 const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x6");
 if (!helicon) throw new Error("Helicon Drive x6 not found");
-const escape = (text) =>
-  text
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-const brackets = Object.entries(bestByBracket(drives.filter((drive) => !isAlien(drive))))
-  .map(
-    ([label, items]) =>
-      `<section><h4>${escape(label)}</h4><ul>${items
-        .map(
-          (item) => {
-            const name = escape(item.drive);
-            const betterThanHelicon =
-              item.drive !== "Helicon Drive" &&
-              item.fuelEfficiency_kps >= helicon.EV_kps &&
-              item.thrust_N >= helicon.thrust_N;
-            const tag = item.best ? "" : item.bestUsable ? ` class="usable"` : null;
-            return `<li data-drive="${name}">${betterThanHelicon ? `<strong>${name}</strong>` : `<span>${name}</span>`}${tag === null ? "" : `<em${tag}>${item.best ? "best" : "best usable"}</em>`}<small>${item.researchCost.toLocaleString("en-US")} RP</small></li>`;
-          },
-        )
-        .join("")}</ul></section>`,
-  )
-  .join("");
-const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the most powerful in the bracket, <em class="usable">best usable</em> the strongest drive in the same bracket that costs an order of magnitude less production to run</p><div class="brackets">${brackets}</div></section>`;
+// The brackets and their frontiers are fixed; the page decides which drive in each one you would
+// actually fly, because that depends on the ship and Δv typed into it.
+const brackets = bestByBracket(drives.filter((drive) => !isAlien(drive))).map((bracket) => ({
+  label: bracket.label,
+  min: bracket.min,
+  max: bracket.max === Infinity ? null : bracket.max,
+  drives: bracket.drives.map((item) => ({
+    n: item.drive,
+    r: item.researchCost,
+    best: item.best,
+    strong:
+      item.drive !== "Helicon Drive" &&
+      item.fuelEfficiency_kps >= helicon.EV_kps &&
+      item.thrust_N >= helicon.thrust_N,
+  })),
+}));
 const template = fs.readFileSync(path.join(__dirname, "fuel-efficiency-thrust.template.html"), "utf8");
 const output = template
   .replace("__DRIVES__", JSON.stringify(chartData))
-  .replace("__BEST_DRIVES__", best);
+  .replace("__BRACKETS__", JSON.stringify(brackets))
+  .replace("__SCORE__", driveScore.toString());
 
-if (output.includes("__DRIVES__") || output.includes("__BEST_DRIVES__")) {
+if (["__DRIVES__", "__BRACKETS__", "__SCORE__"].some((mark) => output.includes(mark))) {
   throw new Error("Chart template placeholders were not replaced");
 }
 fs.writeFileSync(path.join(__dirname, "fuel-efficiency-thrust.html"), output);

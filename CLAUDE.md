@@ -25,7 +25,7 @@ Build scripts also run standalone as CLIs printing JSON:
 
 Each page is `X.template.html` + a build script → generated `X.html`, committed. The script reads
 game JSON, computes everything, and string-replaces one placeholder with a JSON blob
-(`__DRIVES__`, `__BEST_DRIVES__`, `__BLOCS__`); the template's inline `<script>` renders it. Builds
+(`__DRIVES__`, `__BRACKETS__`, `__SCORE__`, `__BLOCS__`); the template's inline `<script>` renders it. Builds
 throw if a placeholder survives. `index.html` is a hand-written tab shell that lazily iframes the
 two generated pages.
 
@@ -67,16 +67,14 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   Propellant is not precomputed: the template's inline script applies the rocket equation to the
   hull mass and Δv typed into the page, so those two inputs stay client-side. Tanks and hull are not
   modelled.
-- `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
-  brackets. Each bracket tags its `best` (most jet power) and, when that drive is impractical, the
-  `bestUsable` — computed from its *own* Pareto frontier, because the strong drive dominates it on
-  both axes and would otherwise hide it. Nothing is judged against an absolute running cost, which
-  would just encode one game stage: a drive qualifies as usable only relative to the bracket's best
-  (`STILL_WORTH_IT` of it on both axes, `CLEARLY_CHEAPER` to run). The bill itself comes from
-  `propulsion.js`: a tank costs months of production, `share × 100 / MONTHLY_OUTPUT[material]`
-  summed over every material (mid-game rates, antimatter at a twentieth of fissiles), times the
-  tanks a 5000 t / 10 km/s reference mission burns. Common materials count — 3,000 t of volatiles
-  is a bigger bill than an Orion's noble metals. alien drives are excluded upstream in `build-chart.js` because they are loot.
+- `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside cumulative
+  research-cost brackets. Each bracket tags its `best`: most jet power, a property of the drive
+  alone. Which drive you would actually *fly* is not — it depends on the ship — so `driveScore`
+  (acceleration on a log scale, credited between 0.02 and 0.1 m/s², minus the trip's supply months
+  on the same scale) is **injected into the page verbatim** by `build-chart.js` via
+  `driveScore.toString()` and re-run there whenever the hull mass or Δv input changes. One tested
+  copy of the formula, two places it runs. `bestByBracket` returns `{label, min, max, drives}` so
+  the page can work out which drives belong to a bracket without a second list.
 - `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals
   into nations/regions/claims; `unify`/`topBlocs`/`plan` compute which nations can merge into
   mega-nations and in what order. `loadWorld` is the single place that knows which files make a

@@ -3,12 +3,17 @@
 const path = require("node:path");
 const { loadPropulsion } = require("./propulsion");
 
-// How much cheaper to run a drive has to be before it is worth naming as the practical choice,
-// and how much of the strong drive it still has to be on both axes. Ratios, not amounts, so they
-// mean the same thing in every bracket.
-const CLEARLY_CHEAPER = 10;
-const STILL_WORTH_IT = 0.5;
-const bill = (drive) => drive.supplyMonths || 0;
+// What a drive is worth for a given ship: acceleration on a log scale, credited only between the
+// point it becomes usable at all and the point where more of it stops buying anything, minus what
+// the trip costs in months of production on the same scale. Injected verbatim into the page, which
+// re-runs it against whatever hull and Δv you type in — this is the only copy of the formula.
+function driveScore({ accel_ms2, supplyMonths }) {
+  const USABLE = 0.02; // m/s^2 — tiny but flyable, the reference point
+  const GOOD = 0.1; // more acceleration than this is pleasant, not valuable
+  const DEAD = 0.005; // below this the drive cannot usefully move the ship at all
+  if (!(accel_ms2 >= DEAD) || !(supplyMonths > 0)) return null;
+  return Math.log10(Math.min(accel_ms2, GOOD) / USABLE) - Math.log10(supplyMonths);
+}
 
 const CAPS = [100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000];
 
@@ -46,25 +51,12 @@ function bestByBracket(drives) {
   // Jet power ranks a frontier that is otherwise two-dimensional: it is what the drive does with
   // the propellant, before you ask what the propellant costs to buy.
   const power = (drive) => Number(String(drive.thrustRating_GW ?? 0).replaceAll(",", "")) || 0;
+  // The frontier is what a bracket offers; which of them you would actually fly depends on the
+  // ship you are flying, so that verdict is the page's to make.
   const summarize = (items) => {
-    const strongest = (list) => list.reduce((best, d) => (!best || power(d) > power(best) ? d : best), null);
     const frontier = pareto(items);
-    const best = strongest(frontier);
-    // Whether a running cost is outrageous only means anything next to what the same era offers,
-    // so nothing here is measured in absolute materials: the bracket has to hand you a way out.
-    // A drive is the one you would actually fly when it is still most of the strong drive on both
-    // axes — a chemical rocket has the jet power of an Orion and a ninth of its exhaust velocity —
-    // for an order of magnitude less production. It gets its own frontier, because the
-    // strong drive dominates it on both axes — the Pion Torch hides the Protium Converter Torch.
-    const cheaper = items.filter(
-      (drive) =>
-        drive.EV_kps >= STILL_WORTH_IT * best.EV_kps &&
-        drive.thrust_N >= STILL_WORTH_IT * best.thrust_N &&
-        bill(drive) * CLEARLY_CHEAPER <= bill(best),
-    );
-    const usable = strongest(pareto(cheaper));
-    const listed = usable && !frontier.includes(usable) ? [...frontier, usable] : frontier;
-    return listed
+    const best = frontier.reduce((top, d) => (!top || power(d) > power(top) ? d : top), null);
+    return frontier
       .sort((a, b) => a.totalResearchCost - b.totalResearchCost)
       .map((drive) => ({
         drive: drive.friendlyName.replace(/ x\d+$/, ""),
@@ -73,14 +65,19 @@ function bestByBracket(drives) {
         thrust_N: drive.thrust_N,
         supplyMonths: drive.supplyMonths,
         best: drive === best,
-        bestUsable: drive === usable && usable !== best,
       }));
   };
 
-  return Object.fromEntries([
-    ...CAPS.map((cap) => [`below ${cap / 1000}k`, summarize(usable.filter((d) => d.totalResearchCost < cap))]),
-    ["800k and above", summarize(usable.filter((d) => d.totalResearchCost >= 800_000))],
-  ]);
+  // Brackets are cumulative — "below 300k" is everything you could have researched by then.
+  return [
+    ...CAPS.map((cap) => ({ label: `below ${cap / 1000}k`, min: 0, max: cap })),
+    { label: "800k and above", min: 800_000, max: Infinity },
+  ].map((bracket) => ({
+    ...bracket,
+    drives: summarize(
+      usable.filter((d) => d.totalResearchCost >= bracket.min && d.totalResearchCost < bracket.max),
+    ),
+  }));
 }
 
 function main() {
@@ -90,4 +87,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { bestByBracket, largestVariants, pareto };
+module.exports = { bestByBracket, driveScore, largestVariants, pareto };
