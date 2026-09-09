@@ -68,9 +68,9 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   hull mass and Δv typed into the page, so those two inputs stay client-side. Tanks and hull are not
   modelled.
 - `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside cumulative
-  research-cost brackets. Brackets run every 100k to 800k and then coarser to 2M, because the
-  endgame spreads over millions and without them the Pion Torch dominates the whole tail on both
-  axes. Each bracket tags the drive worth flying as `best` and, when a different drive has more jet
+  research-cost brackets. Brackets run every 100k to 800k and then one more at 1.2M: only three
+  drives cost more than that, and without the cut the Pion Torch dominates the whole tail on both
+  axes and hides them. Each bracket tags the drive worth flying as `best` and, when a different drive has more jet
   power, that one as `best expensive`. Only the second is a property of the drive alone; the first
   depends on the ship, so `driveScore` and `pickBest`
   (acceleration on a log scale, credited between 0.02 and 0.1 m/s², minus the trip's supply months

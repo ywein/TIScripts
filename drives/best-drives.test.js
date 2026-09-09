@@ -20,7 +20,7 @@ const bracket = (drives, label = "below 100k") =>
 assert.deepEqual(bracket([weak, efficient, powerful, both]).map((d) => d.drive), ["Both"]);
 const labels = bestByBracket([weak]).map((b) => b.label);
 assert.equal(labels[0], "below 100k");
-assert.equal(labels.at(-1), "2000k and above"); // the tail bracket follows the last cap
+assert.equal(labels.at(-1), "1200k and above"); // the tail bracket follows the last cap
 assert.equal(new Set(labels).size, labels.length);
 
 // The strongest drive in a bracket is the one that does the most with its propellant, whatever

@@ -15,9 +15,6 @@ function driveScore({ accel_ms2, supplyMonths }) {
   return Math.log10(Math.min(accel_ms2, GOOD) / USABLE) - Math.log10(supplyMonths);
 }
 
-// Every 100k while drives are still cheap, then coarser — the endgame spreads over millions, and
-// without brackets up there the Pion Torch dominates the whole tail on both axes and hides drives
-// like the Advanced Antimatter Plasma Core Torch that you would fly long before you reach it.
 // Scores this close say the same thing — the difference is a few tons of water — so the faster
 // ship wins rather than whichever rounded a hair cheaper. Injected into the page alongside the
 // score it uses.
@@ -33,9 +30,11 @@ function pickBest(candidates) {
     .sort((a, b) => b.accel_ms2 - a.accel_ms2)[0];
 }
 
+// Every 100k while drives are still cheap, then one bracket for the endgame: only three drives
+// cost more than 1.2M, and without a cut up there the Pion Torch dominates the whole tail on both
+// axes and hides drives like the Advanced Antimatter Plasma Core Torch that you would fly first.
 const CAPS = [
-  100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 1_000_000, 1_200_000,
-  1_500_000, 2_000_000,
+  100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 1_200_000,
 ];
 
 function pareto(drives) {
