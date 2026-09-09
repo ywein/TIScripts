@@ -310,7 +310,7 @@ function report(u, world) {
     for (const m of moves)
       lines.push(
         (m.kind === "annex"
-          ? `  ${name(world, m.by, m.byRegions)} ANNEXES ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
+          ? `  ${name(world, m.by, m.byRegions)} UNIFIES ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
             `(+${holdings(world, u, m.nation).length} regions, ${population(world, holdings(world, u, m.nation)).toFixed(1)}M)`
           : m.regions.length > 1
             ? `  ${name(world, m.by, m.byRegions)} conquers ${name(world, m.victim)} via ${region(world, m.region)} ` +
@@ -330,14 +330,14 @@ function report(u, world) {
 
 function riskReport(world, u) {
   const nm = (id) => name(world, id);
-  const lines = [`KEEP INDEPENDENT — each of these presses its own claims; annex it early and they are gone for good.`];
+  const lines = [`KEEP INDEPENDENT — each of these presses its own claims; unify it early and they are gone for good.`];
   for (const r of risks(world, u)) {
     if (!r.targets.length) continue;
     lines.push(
-      `  ${nm(r.id)} — annexes ${r.targets.map((t) => nm(t.target)).join(", ")}` +
+      `  ${nm(r.id)} — unifies ${r.targets.map((t) => nm(t.target)).join(", ")}` +
         (r.gates.size ? `  [needs ${[...r.gates].map(short).sort().join(", ")}]` : "  [no project needed]"),
     );
-    if (r.traps.length) lines.push(`     ⚠ ${r.traps.map((t) => nm(t.by)).join(", ")} can annex ${nm(r.id)} with no project — block that until ${nm(r.id)} is done.`);
+    if (r.traps.length) lines.push(`     ⚠ ${r.traps.map((t) => nm(t.by)).join(", ")} can unify ${nm(r.id)} with no project — block that until ${nm(r.id)} is done.`);
   }
   const free = [...u.bloc.keys()].filter((id) => !risks(world, u).some((r) => r.id === id && r.targets.length));
   lines.push(`  everything else is disposable: ${free.map(nm).sort().join(", ")}`);

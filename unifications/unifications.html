@@ -293,7 +293,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       <button class="sort" type="button" id="latent-toggle" aria-pressed="true">Include unformed nations</button>
     </div>
     <div class="key">
-      <span><i class="sw-annex"></i>Nations annexed whole</span>
+      <span><i class="sw-annex"></i>Nations unified whole</span>
       <span><i class="sw-grab"></i>Regions taken peacefully</span>
       <span><i class="sw-war"></i>Regions taken by war</span>
     </div>
@@ -302,7 +302,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
   <div class="list" id="list"></div>
 
   <footer class="foot note">
-    Claims belong to a nation, not to whoever holds its land &mdash; annex a nation and its claims die with it.
+    Claims belong to a nation, not to whoever holds its land &mdash; unify a nation and its claims die with it.
     Phases are therefore ordered deepest-first: every nation spends its own claims before it is swallowed.
     Research totals are the full prereq closure, with shared prereqs counted once. Dashed project tags arrive
     from events and cannot be researched. Rows marked FORM FIRST belong to nations that hold no land at the 1962 start.
@@ -330,7 +330,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
 
   const move = (mv) => {
     const war = mv.kind === "war";
-    const verb = mv.kind === "annex" ? "annexes" : war ? "conquers" : "takes";
+    const verb = mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
     return `<div class="move">
       <span><span class="target">${esc(mv.by)}</span>
         <span class="verb${war ? " war" : ""}">${verb}</span>
@@ -344,7 +344,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       <b>${esc(k.name)}</b>
       <p>Must first take ${esc(k.targets.join(", "))}.
       ${k.gates.length ? `<span class="gates">Waits on ${esc(k.gates.join(", "))}.</span>` : "No research needed."}</p>
-      ${k.traps.length ? `<p class="warn">&#9888; ${esc(k.traps.join(", "))} can annex it with no project at all. Block that until it has moved.</p>` : ""}
+      ${k.traps.length ? `<p class="warn">&#9888; ${esc(k.traps.join(", "))} can unify it with no project at all. Block that until it has moved.</p>` : ""}
     </div>`;
 
   const card = (b, i) => {
@@ -354,7 +354,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       <summary class="row-head" aria-controls="${detailId}">
         <span class="rank">${String(i + 1).padStart(2, "0")}</span>
         <span class="nation">${esc(b.name)}<small>${esc(b.id)}${b.latent ? `<span class="chip">FORM FIRST</span>` : ""}</small></span>
-        <span class="bar" role="img" aria-label="${m(b.held + b.grabbed)} annexed, ${m(b.seized)} taken by war">
+        <span class="bar" role="img" aria-label="${m(b.held + b.grabbed)} unified, ${m(b.seized)} taken by war">
           <b class="b-annex" style="width:${pct(b.held)}"></b>
           <b class="b-grab" style="width:${pct(b.grabbed)}"></b>
           <b class="b-war" style="width:${pct(b.seized)}"></b>
