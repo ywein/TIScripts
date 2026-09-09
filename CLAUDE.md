@@ -1,0 +1,69 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+A static site of analysis pages for the game *Terra Invicta*, built by Node scripts that read the
+game's own template data. No framework, no package.json, no dependencies — plain CommonJS, plain
+HTML, `node:test`. d3 is loaded from a CDN inside the drives page only.
+
+## Commands
+
+```sh
+make            # build both pages (only rebuilds when inputs change)
+make -B         # force rebuild
+make test       # node --test — runs every *.test.js
+node --test drives/best-drives.test.js   # one file
+make clean
+```
+
+Build scripts also run standalone as CLIs printing JSON:
+`node drives/research-costs.js <dir>`, `node drives/best-drives.js <dir>`.
+
+## Build pipeline
+
+Each page is `X.template.html` + a build script → generated `X.html`, committed. The script reads
+game JSON, computes everything, and string-replaces one placeholder with a JSON blob
+(`__DRIVES__`, `__BEST_DRIVES__`, `__BLOCS__`); the template's inline `<script>` renders it. Builds
+throw if a placeholder survives. `index.html` is a hand-written tab shell that lazily iframes the
+two generated pages.
+
+Never edit `drives/fuel-efficiency-thrust.html` or `unifications/unifications.html` — edit the
+`.template.html` and rebuild.
+
+## Game data (`templates/`)
+
+Gitignored, copied from the game install. **Read `docs/templates/registry.md` before opening
+anything under `templates/`** — 192 files, and the registry says which one holds what. Then read
+`registry-base.md` plus *one* of `registry-2003.md` / `registry-broken-earth.md`; the two addons
+are mutually exclusive scenarios. `docs/templates/templates.md` explains the layering rules
+(whole-record replacement by `dataName`, parallel prefixed records with `referenceAlias`,
+`scenarioTags` filtering, suffixed l10n keys).
+
+We target the **broken_earth** scenario (`PostApoc` / `BrokenEarth` tags — the defaults hardcoded
+in `loadProjects` and `loadNationNames`).
+
+**Known broken state:** `templates/` is now split into `base/`, `broken_earth/`, `2003/`
+subdirectories, but the build scripts and tests still expect one *flat* directory of merged
+`Templates/*.json` + `l10n/*.en`. `make` and `make test` fail as of the last commit. Only
+`loadProjects` (drives/research-costs.js) and `loadNationNames` (unifications/unifications.js)
+know about layering, and they do it by globbing prefix-matched filenames within one flat dir.
+Wiring the scripts to walk `base` + addon is the outstanding work.
+
+## Domain logic worth knowing
+
+- `drives/research-costs.js` — `researchClosure` is the core: total cost of a set of roots counts
+  shared prereqs **once**, so always pass all roots together rather than summing sticker prices.
+  A negative `researchCost` means unresearchable and propagates as `null`.
+- `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
+  brackets; alien drives are excluded upstream in `build-chart.js` because they are loot.
+- `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals
+  into nations/regions/claims; `unify`/`topBlocs`/`plan` compute which nations can merge into
+  mega-nations and in what order. `loadWorld` is the single place that knows which files make a
+  world — keep the CLI and the build script going through it.
+
+## Workflow
+
+Trunk-based: commit each completed chunk of work directly to `main`. Rebuild the affected pages
+and commit the generated HTML alongside the source change so the site stays consistent.
