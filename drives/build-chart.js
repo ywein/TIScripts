@@ -54,7 +54,7 @@ const brackets = Object.entries(bestByBracket(drives.filter((drive) => !isAlien(
         .join("")}</ul></section>`,
   )
   .join("");
-const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · brackets by drive + reactor research · bold drives meet or exceed Helicon in both</p><div class="brackets">${brackets}</div></section>`;
+const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both</p><div class="brackets">${brackets}</div></section>`;
 const template = fs.readFileSync(path.join(__dirname, "fuel-efficiency-thrust.template.html"), "utf8");
 const output = template
   .replace("__DRIVES__", JSON.stringify(chartData))

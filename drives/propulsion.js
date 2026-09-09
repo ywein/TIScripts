@@ -58,9 +58,8 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
     const options = (power > 0 ? viablePlants(plants, drive) : [])
       .map((plant) => {
         const heat = radiator ? wasteHeat_GW(drive, plant) : 0;
-        // The radiator's own research is deliberately left out: it is a fixed yardstick for
-        // mass, not something the drive forces you to unlock — a cheaper radiator only means a
-        // heavier ship. Rolling it in would put a ~285k RP floor under every drive.
+        // Only used to rank the plants against each other — see below, research cost is the
+        // drive's alone.
         const cost = price([drive.requiredProjectName, plant.requiredProjectName].filter(Boolean));
         return (
           cost && {
@@ -75,6 +74,8 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
       .filter(Boolean);
     // The reactor you would actually pair with the drive: the one that costs least to reach,
     // breaking ties on mass — a more efficient plant also drags fewer radiators along.
+    // Its research, like the radiator's, stays out of the price: both are only a reference, and
+    // any given player will be flying whatever reactor and radiator they happen to have.
     const packMass = (option) => option.plantMass_tons + option.radiatorMass_tons;
     const pick = options.sort(
       (a, b) => a.researchCost - b.researchCost || packMass(a) - packMass(b),
@@ -89,8 +90,8 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
       radiator: pick && pick.heat_GW > 0 ? radiator.friendlyName : null,
       radiatorMass_tons: pick ? pick.radiatorMass_tons : 0,
       mass_tons: pick ? mass + packMass(pick) : power > 0 ? null : mass,
-      totalResearchCost: pick ? pick.researchCost : base && base.researchCost,
-      researchItems: pick ? pick.researchItems : base ? base.researchItems : 0,
+      totalResearchCost: base && base.researchCost,
+      researchItems: base ? base.researchItems : 0,
     };
   });
 }

@@ -39,7 +39,7 @@ assert.equal(big.plantMass_tons, 8); // 2 GW x 4 t/GW
 assert.equal(big.wasteHeat_GW, 0.5); // (1 - 0.75) x 2 GW
 assert.equal(big.radiatorMass_tons, 62.5); // 0.5 GW at 8 kW/kg
 assert.equal(big.mass_tons, 70.5);
-assert.equal(big.totalResearchCost, 35); // drive + plant, shared prereq once
+assert.equal(big.totalResearchCost, 15); // the drive alone: reactor and radiator are reference only
 assert.equal(flat.powerPlant, null);
 assert.equal(flat.mass_tons, 50);
 assert.equal(flat.radiator, null, "open cycle radiates through the nozzle");

@@ -58,11 +58,11 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
 - `drives/propulsion.js` — a drive is only half a package: `req power` (GW, string with commas)
   is drawn from a power plant of the class named in `requiredPowerPlant` (`Any_General` = any),
   and that plant's mass is `req power × specificPower_tGW`, capped by its `maxOutput_GW`. It picks
-  the cheapest-to-research viable plant and prices drive + plant as *one* closure. Open-cycle
+  the cheapest-to-research viable plant, but `totalResearchCost` stays the drive's own closure:
+  the plant and radiator are a mass reference, and players fly whatever they happen to have. Open-cycle
   drives (`req power` 0) carry their own reactor via `flatMass_tons` / `specificPower_kgMW`.
   Waste heat is `(1 - plant efficiency) × req power` for anything not `cooling: "Open"`, rejected
-  by Dusty Plasma radiators at `1000 / specificPower_2s_KWkg` tons per GW. The radiator is a fixed
-  yardstick, so its own research is *not* in the closure — the drive's and the plant's are. Both formulas were
+  by Dusty Plasma radiators at `1000 / specificPower_2s_KWkg` tons per GW. Both formulas were
   checked against the game's ship builder (Helicon x6: 286 t reactor, and 521.8 t of Tin Droplet radiator when `RADIATOR` was set to that).
   Propellant is not precomputed: the template's inline script applies the rocket equation to the
   hull mass and Δv typed into the page, so those two inputs stay client-side. Tanks and hull are not

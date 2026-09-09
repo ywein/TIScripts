@@ -110,8 +110,9 @@ body {
   <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = research cost, mass, acceleration or propellant</p><div class="ctl"><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><label data-tip="Hull, payload and everything else, on top of the drive package — the drive, its reactor and its radiators are added to this."><abbr>Ship</abbr> <input id="h" type="number" min="0" step="100" value="5000" aria-label="Hull and payload mass in tons, on top of the drive package"> t</label><label>&Delta;v <input id="v" type="number" min="0" step="1" value="10" aria-label="Delta-v budget in km/s"> km/s</label><label>Dot area <select id="z"><option value="r">research cost</option><option value="m">package mass</option><option value="a">acceleration, wet</option><option value="f">propellant</option></select></label></div><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents research cost, mass, acceleration or propellant"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer>__BEST_DRIVES__</div>
 
   <footer class="foot note">
-    Research totals are the full prereq closure of the drive <em>and</em> its reactor, with shared prereqs
-    counted once; the reference radiator's own research is not included. Package mass is the drive plus a power plant sized to its draw
+    Research totals are the full prereq closure of the drive alone, with shared prereqs counted
+    once &mdash; the reactor and radiator below are a reference for mass, not a shopping list, so
+    their own research is not added in. Package mass is the drive plus a power plant sized to its draw
     (draw &times; the plant's t/GW; the plant chosen is the cheapest to research that is of the class
     the drive demands and can carry the load) plus Dusty Plasma radiators for the waste heat the
     plant does not convert &mdash; (1 &minus; plant efficiency) &times; drive draw, at 18 kW/kg.
