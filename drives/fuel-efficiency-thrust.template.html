@@ -91,7 +91,33 @@ body {
 .masthead p { margin: 0; max-width: 62ch; color: var(--ink-soft); }
 .masthead hr { width: 100%; height: 3px; margin: 6px 0 0; border: 0; background: var(--ink); }
 
-.note { font-size: 13px; color: var(--ink-faint); max-width: 68ch; }
+.note { font-size: 13px; color: var(--ink-faint); }
+.notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 20px 32px;
+  margin: 0;
+}
+.notes dt {
+  margin-bottom: 5px;
+  font: 600 11px/1 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.notes dd { margin: 0; max-width: 46ch; }
+.notes em {
+  white-space: nowrap;
+  font: 600 10px/1.4 "IBM Plex Mono", ui-monospace, monospace;
+  font-style: normal;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--viz-series-1);
+  color: var(--card);
+}
+.notes em.costly { background: var(--viz-series-3); }
 .foot { border-top: 1px solid var(--rule); padding-top: 14px; }
 </style>
 
@@ -110,29 +136,70 @@ body {
   <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = research cost, mass, acceleration or propellant</p><div class="ctl"><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><label data-tip="Hull, payload and everything else, on top of the drive package — the drive, its reactor and its radiators are added to this."><abbr>Ship</abbr> <input id="h" type="number" min="0" step="100" value="5000" aria-label="Hull and payload mass in tons, on top of the drive package"> t</label><label>&Delta;v <input id="v" type="number" min="0" step="1" value="10" aria-label="Delta-v budget in km/s"> km/s</label><label>Dot area <select id="z"><option value="r">research cost</option><option value="m">package mass</option><option value="a">acceleration, wet</option><option value="f">propellant</option></select></label></div><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents research cost, mass, acceleration or propellant"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer><section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the drive worth flying on the ship above &mdash; acceleration you can actually use, against what the trip costs to fuel &mdash; and <em class="costly">best expensive</em> the most powerful one in the bracket when that is a different drive</p><div class="brackets"></div></section></div>
 
   <footer class="foot note">
-    Research totals are the full prereq closure of the drive alone, with shared prereqs counted
-    once &mdash; the reactor and radiator below are a reference for mass, not a shopping list, so
-    their own research is not added in. Package mass is the drive plus a power plant sized to its draw
-    (draw &times; the plant's t/GW; the plant chosen is the cheapest to research that is of the class
-    the drive demands and can carry the load) plus Dusty Plasma radiators for the waste heat the
-    plant does not convert &mdash; (1 &minus; plant efficiency) &times; drive draw, at 18 kW/kg.
-    The supply figure prices a trip in months of a mid-game faction's output &mdash; 5,000 t of water
-    and metals, 2,000 t of volatiles, 1,000 t of noble metals, 300 t of fissiles, and antimatter at a
-    twentieth of that &mdash; so 3,000 t of common volatiles counts as the real bill it is. No absolute figure
-    decides what is affordable: a bracket's <em>best</em> is whichever drive scores highest on
-    acceleration &mdash; credited on a log scale from 2 milli-g, the point the ship can manoeuvre at all,
-    up to 10 milli-g, past which more of it stops being worth paying for &mdash; against the supply
-    months the trip costs. Under 2 milli-g a drive is dropped from the bracket outright. Drives that would need
-    more than three times the ship's mass in propellant are dropped from the bracket entirely &mdash; a
-    chemical rocket holds its place on the frontier forever on thrust alone, but wanting 24 times its
-    own mass in fuel settles the question. All of this is recomputed for the ship and &Delta;v above,
-    because all of it changes with them. Open-cycle drives radiate through the nozzle and carry none. Propellant is the rocket equation
-    over the hull mass and &Delta;v you set, rounded up to whole 100 t tanks the way the ship
-    builder makes you buy them &mdash; dry mass is your hull plus the propulsion package,
-    and acceleration is quoted with full tanks. The tanks themselves, and the hull, are not massed. Dot area is clamped to the 5th&ndash;95th
-    percentile of whichever measure it shows, so one outlier cannot flatten the rest. Alien drives are
-    left out &mdash; they arrive from captured hulls, not from research. Drives are plotted as their x6 variants &mdash; what ships actually mount &mdash; except the
-    Orion-type drives, which only exist as x1. Bold entries in the brackets below match or beat the Helicon Drive on both axes.
+    <dl class="notes">
+      <div>
+        <dt>What is plotted</dt>
+        <dd>
+          Every drive design as its x6 bank &mdash; what ships actually mount &mdash; except the
+          Orion-type drives, which only exist as x1. Alien drives are left out: they arrive from
+          captured hulls, not from research. Bold entries in the brackets match or beat the Helicon
+          Drive on both axes.
+        </dd>
+      </div>
+      <div>
+        <dt>Research</dt>
+        <dd>
+          The full prereq closure of the drive alone, with shared prereqs counted once. The reactor
+          and radiator are a reference for working out mass, not a shopping list, so their own
+          research is not added in.
+        </dd>
+      </div>
+      <div>
+        <dt>Package mass</dt>
+        <dd>
+          The drive, plus a power plant sized to its draw (draw &times; the plant's t/GW &mdash; the
+          cheapest plant to research of the class the drive demands that can carry the load), plus
+          Dusty Plasma radiators for the waste heat the plant does not convert,
+          (1 &minus; plant efficiency) &times; draw at 18 kW/kg. Open-cycle drives radiate through
+          the nozzle and carry none.
+        </dd>
+      </div>
+      <div>
+        <dt>Propellant</dt>
+        <dd>
+          The rocket equation over the hull mass and &Delta;v you set, rounded up to whole 100 t
+          tanks the way the ship builder sells them. Dry mass is your hull plus the package, and
+          acceleration is quoted with full tanks. The tanks themselves, and the hull, are not massed.
+        </dd>
+      </div>
+      <div>
+        <dt>Supply cost</dt>
+        <dd>
+          A trip priced in months of a mid-game faction's output &mdash; 5,000 t of water and metals,
+          2,000 t of volatiles, 1,000 t of noble metals, 300 t of fissiles, and antimatter at a
+          twentieth of that &mdash; so 3,000 t of common volatiles counts as the real bill it is.
+        </dd>
+      </div>
+      <div>
+        <dt>Best and best expensive</dt>
+        <dd>
+          <em>Best</em> scores acceleration &mdash; credited from 2 milli-g, where the ship can
+          manoeuvre at all, up to 10 milli-g, past which more of it stops being worth paying for
+          &mdash; against the supply months of the trip. <em class="costly">Best expensive</em> is
+          the most powerful drive in the bracket when that is a different one. Drives under 2 milli-g,
+          or needing more than three times the ship's mass in propellant, are dropped: a chemical
+          rocket holds the frontier on thrust alone, but wanting 24 times its own mass in fuel settles
+          it. All of this is recomputed for the ship above, because all of it changes with it.
+        </dd>
+      </div>
+      <div>
+        <dt>Dot area</dt>
+        <dd>
+          Clamped to the 5th&ndash;95th percentile of whichever measure it shows, so a single outlier
+          cannot flatten the rest.
+        </dd>
+      </div>
+    </dl>
   </footer>
 </div>
 
