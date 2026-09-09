@@ -9,6 +9,16 @@ const num = (value) => Number(String(value ?? 0).replaceAll(",", "")) || 0;
 // One reference radiator for every drive so the numbers compare. Dusty Plasma rejects 18 kW/kg,
 // which is what keeps the high-end drives from drowning in radiator mass.
 const RADIATOR = "DustyPlasma";
+
+// What a tank of propellant actually costs you, counting only the materials you are ever short
+// of. Water, volatiles and metals are abundant enough to be free at this resolution; the weights
+// below are a judgement call about relative scarcity, not something the templates state.
+const MATERIAL_RARITY = { antimatter: 500, fissiles: 1, nobleMetals: 0.5 };
+// The reference mission the supply bill is quoted for — the page's own defaults.
+const REFERENCE_SHIP = { hull_tons: 5000, deltaV_kps: 10 };
+// Above this, a drive is a museum piece: the Pion Torch bills 25,000 against 360 for the next
+// worst drive in the game, so anything in the hundreds is still something you can fly.
+const PRACTICAL_LIMIT = 1000;
 const isAlien = (item) => (item.requiredProjectName || "").startsWith("Project_Alien");
 
 // Drive mass is the flat hull mass plus a per-jet-watt term; open-cycle drives (chemical,
@@ -40,6 +50,24 @@ const wasteHeat_GW = (drive, plant) =>
 
 // Radiators are rated in kW rejected per kg, so tons per GW is 1000 / that.
 const radiatorMass = (heat_GW, radiator) => (heat_GW * 1000) / radiator.specificPower_2s_KWkg;
+
+// Rare materials per 100 t tank, weighted by how much it hurts to spend them.
+const tankSupplyCost = (drive) =>
+  Object.entries(drive.perTankPropellantMaterials || {}).reduce(
+    (sum, [material, share]) => sum + share * 100 * (MATERIAL_RARITY[material] || 0),
+    0,
+  );
+
+// Tanks come in 100 t units, so the bill for a mission is a whole number of them. Mirrors the
+// rocket equation the chart runs client-side against whatever hull and Δv you type in.
+const referenceTanks = (drive, mass_tons) =>
+  drive.EV_kps > 0
+    ? Math.ceil(
+        ((REFERENCE_SHIP.hull_tons + mass_tons) *
+          (Math.exp(REFERENCE_SHIP.deltaV_kps / drive.EV_kps) - 1)) /
+          100,
+      )
+    : 0;
 
 // Every drive+plant pairing, priced as one research closure so prereqs the drive, the reactor
 // and the radiator share are paid for once.
@@ -80,9 +108,15 @@ function propulsionPackages(drives, plants, projects, techs, radiators = []) {
     const pick = options.sort(
       (a, b) => a.researchCost - b.researchCost || packMass(a) - packMass(b),
     )[0];
+    const perTank = tankSupplyCost(drive);
+    const tanks = pick || power === 0 ? referenceTanks(drive, mass + (pick ? packMass(pick) : 0)) : 0;
     return {
       ...drive,
       driveMass_tons: mass,
+      tankSupplyCost: perTank,
+      referenceTanks: tanks,
+      supplyBill: perTank * tanks,
+      practical: perTank * tanks <= PRACTICAL_LIMIT,
       power_GW: power,
       powerPlant: pick ? pick.plant.friendlyName : null,
       plantMass_tons: pick ? pick.plantMass_tons : 0,
@@ -113,4 +147,14 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { propulsionPackages, loadPropulsion, driveMass, viablePlants, wasteHeat_GW };
+module.exports = {
+  propulsionPackages,
+  loadPropulsion,
+  driveMass,
+  viablePlants,
+  wasteHeat_GW,
+  tankSupplyCost,
+  MATERIAL_RARITY,
+  PRACTICAL_LIMIT,
+  REFERENCE_SHIP,
+};

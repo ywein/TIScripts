@@ -29,3 +29,30 @@ assert.deepEqual(Object.keys(bestByBracket([weak])), [
   "below 800k",
   "800k and above",
 ]);
+
+// A drive that dominates the frontier but bankrupts you does not hide the one you would fly:
+// the usable pick gets its own frontier and is listed even when the strong drive covers it.
+const torch = (name, cost, efficiency, thrust, practical) => ({
+  ...drive(name, cost, efficiency, thrust),
+  thrustRating_GW: (efficiency * thrust) / 2,
+  practical,
+});
+const [ruinous, flyable] = [
+  torch("Ruinous", 50_000, 10, 10, false),
+  torch("Flyable", 60_000, 8, 8, true),
+];
+const listed = bestByBracket([ruinous, flyable])["below 100k"];
+assert.deepEqual(
+  listed.map((d) => [d.drive, d.best, d.bestUsable]),
+  [
+    ["Ruinous", true, false],
+    ["Flyable", false, true],
+  ],
+);
+// With nothing to disqualify, the strongest drive is simply the best and nothing else is tagged.
+assert.deepEqual(
+  bestByBracket([torch("Cheap", 10_000, 8, 8, true), torch("Strong", 20_000, 10, 10, true)])[
+    "below 100k"
+  ].map((d) => [d.drive, d.best, d.bestUsable]),
+  [["Strong", true, false]],
+);

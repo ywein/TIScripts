@@ -68,7 +68,12 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   hull mass and Δv typed into the page, so those two inputs stay client-side. Tanks and hull are not
   modelled.
 - `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
-  brackets; alien drives are excluded upstream in `build-chart.js` because they are loot.
+  brackets. Each bracket tags its `best` (most jet power) and, when that drive is impractical, the
+  `bestUsable` — computed from its *own* Pareto frontier over practical drives, because the strong
+  drive dominates it on both axes and would otherwise hide it. Practicality comes from
+  `propulsion.js`: rare materials per tank (`MATERIAL_RARITY`, a judgement call — antimatter 500,
+  fissiles 1, noble metals 0.5, everything else free) times the tanks a 5000 t / 10 km/s reference
+  mission burns, against `PRACTICAL_LIMIT`. Only the Pion Torch fails it. alien drives are excluded upstream in `build-chart.js` because they are loot.
 - `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals
   into nations/regions/claims; `unify`/`topBlocs`/`plan` compute which nations can merge into
   mega-nations and in what order. `loadWorld` is the single place that knows which files make a

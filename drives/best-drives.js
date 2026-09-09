@@ -36,15 +36,30 @@ function bestByBracket(drives) {
       drive.thrust_N > 0 &&
       Number.isFinite(drive.totalResearchCost),
   );
-  const summarize = (items) =>
-    pareto(items)
+  // Jet power ranks a frontier that is otherwise two-dimensional: it is what the drive does with
+  // the propellant, before you ask what the propellant costs to buy.
+  const power = (drive) => Number(String(drive.thrustRating_GW ?? 0).replaceAll(",", "")) || 0;
+  const summarize = (items) => {
+    const strongest = (list) => list.reduce((best, d) => (!best || power(d) > power(best) ? d : best), null);
+    const frontier = pareto(items);
+    const best = strongest(frontier);
+    // The best drive you would actually fly: the strongest one whose propellant you can afford to
+    // keep buying. It gets its own frontier, because a drive that is better on paper hides it —
+    // the Pion Torch dominates the Protium Converter Torch on both axes and bankrupts you.
+    const usable = strongest(pareto(items.filter((d) => d.practical !== false)));
+    const listed = usable && !frontier.includes(usable) ? [...frontier, usable] : frontier;
+    return listed
       .sort((a, b) => a.totalResearchCost - b.totalResearchCost)
-      .map(({ friendlyName, totalResearchCost, EV_kps, thrust_N }) => ({
-        drive: friendlyName.replace(/ x\d+$/, ""),
-        researchCost: totalResearchCost,
-        fuelEfficiency_kps: EV_kps,
-        thrust_N,
+      .map((drive) => ({
+        drive: drive.friendlyName.replace(/ x\d+$/, ""),
+        researchCost: drive.totalResearchCost,
+        fuelEfficiency_kps: drive.EV_kps,
+        thrust_N: drive.thrust_N,
+        supplyBill: drive.supplyBill,
+        best: drive === best,
+        bestUsable: drive === usable && usable !== best,
       }));
+  };
 
   return Object.fromEntries([
     ...CAPS.map((cap) => [`below ${cap / 1000}k`, summarize(usable.filter((d) => d.totalResearchCost < cap))]),
