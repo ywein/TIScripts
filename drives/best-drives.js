@@ -15,7 +15,28 @@ function driveScore({ accel_ms2, supplyMonths }) {
   return Math.log10(Math.min(accel_ms2, GOOD) / USABLE) - Math.log10(supplyMonths);
 }
 
-const CAPS = [100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000];
+// Every 100k while drives are still cheap, then coarser — the endgame spreads over millions, and
+// without brackets up there the Pion Torch dominates the whole tail on both axes and hides drives
+// like the Advanced Antimatter Plasma Core Torch that you would fly long before you reach it.
+// Scores this close say the same thing — the difference is a few tons of water — so the faster
+// ship wins rather than whichever rounded a hair cheaper. Injected into the page alongside the
+// score it uses.
+function pickBest(candidates) {
+  const TIE = 0.05;
+  const scored = candidates
+    .map((c) => ({ ...c, score: driveScore(c) }))
+    .filter((c) => c.score !== null);
+  if (!scored.length) return null;
+  const top = Math.max(...scored.map((c) => c.score));
+  return scored
+    .filter((c) => c.score >= top - TIE)
+    .sort((a, b) => b.accel_ms2 - a.accel_ms2)[0];
+}
+
+const CAPS = [
+  100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 1_000_000, 1_200_000,
+  1_500_000, 2_000_000,
+];
 
 function pareto(drives) {
   return drives.filter(
@@ -71,7 +92,7 @@ function bestByBracket(drives) {
   // Brackets are cumulative — "below 300k" is everything you could have researched by then.
   return [
     ...CAPS.map((cap) => ({ label: `below ${cap / 1000}k`, min: 0, max: cap })),
-    { label: "800k and above", min: 800_000, max: Infinity },
+    { label: `${CAPS.at(-1) / 1000}k and above`, min: CAPS.at(-1), max: Infinity },
   ].map((bracket) => ({
     ...bracket,
     drives: summarize(
@@ -87,4 +108,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { bestByBracket, driveScore, largestVariants, pareto };
+module.exports = { bestByBracket, driveScore, largestVariants, pareto, pickBest };

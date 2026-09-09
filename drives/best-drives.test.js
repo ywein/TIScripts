@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const { bestByBracket, driveScore, pareto } = require("./best-drives");
+const { bestByBracket, driveScore, pareto, pickBest } = require("./best-drives");
 
 const drive = (name, cost, efficiency, thrust) => ({
   friendlyName: `${name} x1`,
@@ -18,17 +18,10 @@ const bracket = (drives, label = "below 100k") =>
   bestByBracket(drives).find((b) => b.label === label).drives;
 
 assert.deepEqual(bracket([weak, efficient, powerful, both]).map((d) => d.drive), ["Both"]);
-assert.deepEqual(bestByBracket([weak]).map((b) => b.label), [
-  "below 100k",
-  "below 200k",
-  "below 300k",
-  "below 400k",
-  "below 500k",
-  "below 600k",
-  "below 700k",
-  "below 800k",
-  "800k and above",
-]);
+const labels = bestByBracket([weak]).map((b) => b.label);
+assert.equal(labels[0], "below 100k");
+assert.equal(labels.at(-1), "2000k and above"); // the tail bracket follows the last cap
+assert.equal(new Set(labels).size, labels.length);
 
 // The strongest drive in a bracket is the one that does the most with its propellant, whatever
 // that propellant costs — the frontier is ranked on jet power alone.
@@ -55,3 +48,22 @@ assert.ok(
 assert.ok(score(1, 1) === score(0.1, 1), "acceleration past 0.1 buys nothing");
 assert.ok(score(0.05, 0.1) > score(0.05, 1), "cheaper to run is better");
 assert.ok(score(0.05, 0.5) > score(0.01, 0.5), "faster is better");
+
+// Two drives that both cost a tank of water are the same answer; the one that accelerates twice
+// as hard should not lose to a rounding difference in propellant.
+assert.equal(
+  pickBest([
+    { n: "Sluggish", accel_ms2: 1.2, supplyMonths: 0.02 },
+    { n: "Brisk", accel_ms2: 2.34, supplyMonths: 0.0215 },
+  ]).n,
+  "Brisk",
+);
+// A genuinely cheaper drive still wins, tolerance or not.
+assert.equal(
+  pickBest([
+    { n: "Thirsty", accel_ms2: 2, supplyMonths: 1 },
+    { n: "Frugal", accel_ms2: 0.05, supplyMonths: 0.05 },
+  ]).n,
+  "Frugal",
+);
+assert.equal(pickBest([{ n: "Stranded", accel_ms2: 0.001, supplyMonths: 0.01 }]), null);

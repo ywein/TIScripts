@@ -107,7 +107,7 @@ body {
     <hr>
   </header>
 
-  <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = research cost, mass, acceleration or propellant</p><div class="ctl"><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><label data-tip="Hull, payload and everything else, on top of the drive package — the drive, its reactor and its radiators are added to this."><abbr>Ship</abbr> <input id="h" type="number" min="0" step="100" value="5000" aria-label="Hull and payload mass in tons, on top of the drive package"> t</label><label>&Delta;v <input id="v" type="number" min="0" step="1" value="10" aria-label="Delta-v budget in km/s"> km/s</label><label>Dot area <select id="z"><option value="r">research cost</option><option value="m">package mass</option><option value="a">acceleration, wet</option><option value="f">propellant</option></select></label></div><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents research cost, mass, acceleration or propellant"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer><section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the most powerful in the bracket, <em class="usable">best usable</em> the one worth flying on the ship above &mdash; acceleration you can actually use, against what the trip costs to fuel</p><div class="brackets"></div></section></div>
+  <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = research cost, mass, acceleration or propellant</p><div class="ctl"><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><label data-tip="Hull, payload and everything else, on top of the drive package — the drive, its reactor and its radiators are added to this."><abbr>Ship</abbr> <input id="h" type="number" min="0" step="100" value="5000" aria-label="Hull and payload mass in tons, on top of the drive package"> t</label><label>&Delta;v <input id="v" type="number" min="0" step="1" value="10" aria-label="Delta-v budget in km/s"> km/s</label><label>Dot area <select id="z"><option value="r">research cost</option><option value="m">package mass</option><option value="a">acceleration, wet</option><option value="f">propellant</option></select></label></div><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents research cost, mass, acceleration or propellant"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer><section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both · <em>best</em> is the drive worth flying on the ship above &mdash; acceleration you can actually use, against what the trip costs to fuel &mdash; and <em class="costly">best expensive</em> the most powerful one in the bracket when that is a different drive</p><div class="brackets"></div></section></div>
 
   <footer class="foot note">
     Research totals are the full prereq closure of the drive alone, with shared prereqs counted
@@ -118,10 +118,11 @@ body {
     plant does not convert &mdash; (1 &minus; plant efficiency) &times; drive draw, at 18 kW/kg.
     The supply figure prices a trip in months of a mid-game faction's output &mdash; 5,000 t of water
     and metals, 2,000 t of volatiles, 1,000 t of noble metals, 300 t of fissiles, and antimatter at a
-    twentieth of that &mdash; so 3,000 t of common volatiles counts as the real bill it is. No absolute
-    figure decides what is affordable, since a bill that is ruinous early is routine later: a bracket
-    names a <em class="usable">best usable</em> drive only when it holds one that is still at least
-    half the best drive on both axes for a tenth of the production. Open-cycle drives radiate through the nozzle and carry none. Propellant is the rocket equation
+    twentieth of that &mdash; so 3,000 t of common volatiles counts as the real bill it is. No absolute figure
+    decides what is affordable: a bracket's <em>best</em> is whichever drive scores highest on
+    acceleration &mdash; credited on a log scale from 0.02 m/s&sup2;, where it is barely flyable, up to
+    0.1, past which more of it stops being worth paying for &mdash; against the supply months the trip
+    costs. That verdict is recomputed for the ship and &Delta;v above, because it changes with them. Open-cycle drives radiate through the nozzle and carry none. Propellant is the rocket equation
     over the hull mass and &Delta;v you set, rounded up to whole 100 t tanks the way the ship
     builder makes you buy them &mdash; dry mass is your hull plus the propulsion package,
     and acceleration is quoted with full tanks. The tanks themselves, and the hull, are not massed. Dot area is clamped to the 5th&ndash;95th
@@ -170,8 +171,8 @@ body {
 #ft .brackets strong{font-weight:600}
 #ft .brackets li{flex-wrap:wrap}
 #ft .brackets em,#ft .best>p em{font:600 10px/1.4 "IBM Plex Mono",ui-monospace,monospace;font-style:normal;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:2px;background:var(--viz-series-1);color:var(--card)}
-#ft .brackets li:has(em.usable){border-left-color:var(--viz-series-3)}
-#ft em.usable{background:var(--viz-series-3)}
+#ft .brackets li:has(em.costly){border-left-color:var(--viz-series-3)}
+#ft em.costly{background:var(--viz-series-3)}
 #ft .brackets small{white-space:nowrap;font:400 12px/1.3 "IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink-faint)}
 @media (max-width: 780px) { #ft { padding: 16px 12px } }
 </style>
@@ -189,17 +190,15 @@ const B=d3.select(R.querySelector("nav")).selectAll("span").data(C).join("span")
 const hit=v=>{const q=Q.value.trim().toLowerCase();return q&&[v.n,nice(v.c),nice(v.p),v.pl||""].join(" ").toLowerCase().includes(q)};
 function mark(){const q=Q.value.trim();S.selectAll("circle").classed("match",v=>q&&hit(v)).classed("miss",v=>q&&!hit(v));F.textContent=base+(q?" · "+D.filter(hit).length+" match “"+q+"”":"")}
 Q.addEventListener("input",mark);for(const el of [Q2,QH,QV])el.addEventListener("input",draw);
-const BR=__BRACKETS__,score=__SCORE__,BEST=R.querySelector(".brackets");
+const BR=__BRACKETS__,driveScore=__SCORE__,pickBest=__PICK__,BEST=R.querySelector(".brackets");
 // Which drive in a bracket is worth flying is a property of the ship, so the tags are redrawn
 // with everything else. The strongest drive can be one you could never fuel.
 function brackets(){BEST.innerHTML=BR.map(b=>{const rows=b.drives.slice(),
- rank=v=>{const s=ship(v);return s?score({accel_ms2:s.a,supplyMonths:s.months}):null},
- pick=D.filter(v=>v.r>=b.min&&(b.max===null||v.r<b.max)).map(v=>({v,s:rank(v)})).filter(o=>o.s!==null)
-   .sort((x,y)=>y.s-x.s||ship(y.v).a-ship(x.v).a)[0],
- usable=pick&&pick.v.n;
+ pick=pickBest(D.filter(v=>v.r>=b.min&&(b.max===null||v.r<b.max)).map(v=>{const s=ship(v);return s&&{n:v.n,accel_ms2:s.a,supplyMonths:s.months}}).filter(Boolean)),
+ usable=pick&&pick.n;
  if(usable&&!rows.some(r=>r.n===usable))rows.push({n:usable,r:D.find(v=>v.n===usable).r,best:false,strong:false});
  return "<section><h4>"+b.label+"</h4><ul>"+rows.sort((x,y)=>x.r-y.r).map(r=>{
-  const tag=r.best?"<em>best</em>":r.n===usable?"<em class=\"usable\">best usable</em>":"";
+  const tag=r.n===usable?"<em>best</em>":r.best?"<em class=\"costly\">best expensive</em>":"";
   return "<li data-drive=\""+r.n+"\">"+(r.strong?"<strong>"+r.n+"</strong>":"<span>"+r.n+"</span>")+tag+"<small>"+r.r.toLocaleString("en-US")+" RP</small></li>"}).join("")+"</ul></section>"}).join("")}
 let base="";
 function draw(){const w=Math.max(320,R.clientWidth),h=w<420?420:440,m={top:12,right:18,bottom:58,left:w<420?64:76},d=D;S.attr("viewBox",`0 0 ${w} ${h}`).attr("height",h).selectAll("*").remove();const x=d3.scaleLog().domain(d3.extent(D,v=>v.e)).nice().range([m.left,w-m.right]),y=d3.scaleLog().domain(d3.extent(D,v=>v.t)).nice().range([h-m.bottom,m.top]);

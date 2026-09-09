@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { bestByBracket, driveScore, largestVariants } = require("./best-drives");
+const { bestByBracket, driveScore, largestVariants, pickBest } = require("./best-drives");
 const { loadPropulsion } = require("./propulsion");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
@@ -52,9 +52,10 @@ const template = fs.readFileSync(path.join(__dirname, "fuel-efficiency-thrust.te
 const output = template
   .replace("__DRIVES__", JSON.stringify(chartData))
   .replace("__BRACKETS__", JSON.stringify(brackets))
-  .replace("__SCORE__", driveScore.toString());
+  .replace("__SCORE__", driveScore.toString())
+  .replace("__PICK__", pickBest.toString());
 
-if (["__DRIVES__", "__BRACKETS__", "__SCORE__"].some((mark) => output.includes(mark))) {
+if (["__DRIVES__", "__BRACKETS__", "__SCORE__", "__PICK__"].some((mark) => output.includes(mark))) {
   throw new Error("Chart template placeholders were not replaced");
 }
 fs.writeFileSync(path.join(__dirname, "fuel-efficiency-thrust.html"), output);
