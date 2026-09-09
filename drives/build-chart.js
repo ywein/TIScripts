@@ -2,17 +2,11 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { calculateResearchCosts } = require("./research-costs");
 const { bestByBracket, largestVariants } = require("./best-drives");
-const { loadTemplates } = require("../templates");
+const { loadPropulsion } = require("./propulsion");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
-const load = (name) => loadTemplates(templates, name);
-const drives = calculateResearchCosts(
-  load("TIDriveTemplate.json"),
-  load("TIProjectTemplate.json"),
-  load("TITechTemplate.json"),
-);
+const drives = loadPropulsion(templates);
 // Alien drives are loot, not a research target: they only ever arrive from captured hulls.
 const isAlien = (drive) => drive.requiredProjectName.startsWith("Project_Alien");
 const chartData = largestVariants(drives)
@@ -26,6 +20,10 @@ const chartData = largestVariants(drives)
     i: drive.researchItems,
     p: drive.propellant,
     f: drive.perTankPropellantMaterials,
+    m: drive.mass_tons,
+    dm: drive.driveMass_tons,
+    w: drive.power_GW,
+    pl: drive.powerPlant,
   }));
 const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x6");
 if (!helicon) throw new Error("Helicon Drive x6 not found");
@@ -52,7 +50,7 @@ const brackets = Object.entries(bestByBracket(drives.filter((drive) => !isAlien(
         .join("")}</ul></section>`,
   )
   .join("");
-const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · bold drives meet or exceed Helicon in both</p><div class="brackets">${brackets}</div></section>`;
+const best = `<section class="best" aria-labelledby="best-title"><h3 id="best-title">Best drives by research bracket</h3><p>Pareto-optimal for fuel efficiency and thrust · brackets by drive + reactor research · bold drives meet or exceed Helicon in both</p><div class="brackets">${brackets}</div></section>`;
 const template = fs.readFileSync(path.join(__dirname, "fuel-efficiency-thrust.template.html"), "utf8");
 const output = template
   .replace("__DRIVES__", JSON.stringify(chartData))

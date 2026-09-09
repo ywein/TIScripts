@@ -101,15 +101,19 @@ body {
     <h1>Drive Atlas</h1>
     <p>
       Every single-thruster drive design, placed by what it costs you to move: fuel efficiency
-      against thrust, with the dot area showing the research bill to unlock it.
+      against thrust, with the dot area showing either the research bill to unlock it or the mass of the drive
+      plus the reactor that feeds it.
     </p>
     <hr>
   </header>
 
-  <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = cumulative research cost</p><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents cumulative research cost"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer>__BEST_DRIVES__</div>
+  <div id="ft"><h2>Fuel efficiency vs. thrust</h2><p>One point per drive design · x6 thruster banks · exhaust velocity = fuel efficiency · dot area = cumulative research cost or propulsion mass</p><div class="ctl"><input id="q" type="search" placeholder="Highlight drives, e.g. fusion" aria-label="Highlight drives matching text"><label>Dot area <select id="z"><option value="r">research cost</option><option value="m">package mass</option></select></label></div><nav aria-label="Drive classifications"></nav><svg role="img" aria-label="Scatter plot of exhaust velocity versus thrust; dot area represents cumulative research cost or propulsion package mass"></svg><aside role="tooltip"></aside><footer aria-live="polite"></footer>__BEST_DRIVES__</div>
 
   <footer class="foot note">
-    Research totals are the full prereq closure, with shared prereqs counted once. Alien drives are
+    Research totals are the full prereq closure of the drive <em>and</em> its reactor, with shared prereqs
+    counted once. Package mass is the drive plus a power plant sized to its draw
+    (draw &times; the plant's t/GW); the plant chosen is the cheapest to research that is of the
+    class the drive demands and can carry the load. Radiators, tanks, hull and payload are not counted. Alien drives are
     left out &mdash; they arrive from captured hulls, not from research. Drives are plotted as their x6 variants &mdash; what ships actually mount &mdash; except the
     Orion-type drives, which only exist as x1. Bold entries in the brackets below match or beat the Helicon Drive on both axes.
   </footer>
@@ -121,7 +125,10 @@ body {
 #ft>p{margin:3px 0 14px;font:400 11px/1.3 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;color:var(--ink-faint)}
 #ft nav{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:12px}
 #ft nav span{display:inline-flex;align-items:center;gap:7px;color:var(--ink-soft);font:500 11px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase}
-#ft input{align-self:flex-start;width:min(100%,280px);margin-bottom:12px;padding:5px 9px;border:1px solid var(--rule-hard);border-radius:2px;background:var(--card-sunk);color:var(--ink);font:400 12px/1.2 "IBM Plex Mono",ui-monospace,monospace}
+#ft .ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}
+#ft label{display:inline-flex;align-items:center;gap:6px;color:var(--ink-faint);font:400 11px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase}
+#ft select{padding:4px 6px;border:1px solid var(--rule-hard);border-radius:2px;background:var(--card-sunk);color:var(--ink);font:400 11px/1.2 "IBM Plex Mono",ui-monospace,monospace}
+#ft input{width:min(100%,280px);padding:5px 9px;border:1px solid var(--rule-hard);border-radius:2px;background:var(--card-sunk);color:var(--ink);font:400 12px/1.2 "IBM Plex Mono",ui-monospace,monospace}
 #ft input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
 #ft i{width:9px;height:9px;border-radius:1px;background:var(--c)}
 #ft svg{display:block;width:100%;min-height:390px;overflow:visible;background:var(--card-sunk)}
@@ -151,17 +158,17 @@ body {
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script>
-(()=>{const R=document.getElementById("ft"),D=__DRIVES__,S=d3.select(R.querySelector("svg")),T=R.querySelector("aside"),F=R.querySelector("footer"),C=[...new Set(D.map(d=>d.c))],Q=R.querySelector("#q"),K=new Map(C.map((c,i)=>[c,"var(--viz-series-"+(i%6+1)+")"])),nice=s=>s.replace(/([a-z])([A-Z])/g,"$1 $2").replaceAll("_"," "),fmt=v=>v>=1e6?(v/1e6).toFixed(v>=1e7?0:1)+" MN":v>=1e3?(v/1e3).toFixed(v>=1e5?0:1)+" kN":v+" N";
+(()=>{const R=document.getElementById("ft"),D=__DRIVES__,S=d3.select(R.querySelector("svg")),T=R.querySelector("aside"),F=R.querySelector("footer"),C=[...new Set(D.map(d=>d.c))],Q=R.querySelector("#q"),Q2=R.querySelector("#z"),K=new Map(C.map((c,i)=>[c,"var(--viz-series-"+(i%6+1)+")"])),nice=s=>s.replace(/([a-z])([A-Z])/g,"$1 $2").replaceAll("_"," "),fmt=v=>v>=1e6?(v/1e6).toFixed(v>=1e7?0:1)+" MN":v>=1e3?(v/1e3).toFixed(v>=1e5?0:1)+" kN":v+" N";
 function stats(d){const x=d.map(v=>Math.log10(v.e)),y=d.map(v=>Math.log10(v.t)),mx=d3.mean(x),my=d3.mean(y),xx=d3.sum(x,v=>(v-mx)**2),xy=d3.sum(x.map((v,i)=>(v-mx)*(y[i]-my)));return{r:xy/Math.sqrt(xx*d3.sum(y,v=>(v-my)**2)),a:my-xy/xx*mx,b:xy/xx}}
-function showTip(ev,n){if(!n)return;const mix=Object.entries(n.f||{}).filter(([,v])=>v>0).map(([k,v])=>d3.format(".3~g")(v*100)+"% "+nice(k)).join(", ");T.style.display="block";T.innerHTML="<b>"+n.n+"</b>"+nice(n.c)+"<br>EV: "+d3.format(",~g")(n.e)+" km/s<br>Thrust: "+d3.format(",")(n.t)+" N<br>Fuel: "+nice(n.p)+(mix?" ("+mix+")":"")+"<br>Research: "+(Number.isFinite(n.r)?d3.format(",")(n.r)+" RP across "+n.i+" items":"not researchable");const b=R.getBoundingClientRect(),u=T.getBoundingClientRect();T.style.left=Math.min(R.clientWidth-u.width-4,ev.clientX-b.left+12)+"px";T.style.top=Math.max(0,ev.clientY-b.top-u.height-10)+"px"}
+function showTip(ev,n){if(!n)return;const mix=Object.entries(n.f||{}).filter(([,v])=>v>0).map(([k,v])=>d3.format(".3~g")(v*100)+"% "+nice(k)).join(", ");T.style.display="block";T.innerHTML="<b>"+n.n+"</b>"+nice(n.c)+"<br>EV: "+d3.format(",~g")(n.e)+" km/s<br>Thrust: "+d3.format(",")(n.t)+" N<br>Fuel: "+nice(n.p)+(mix?" ("+mix+")":"")+"<br>Package: "+(n.m==null?"n/a":d3.format(",.4~r")(n.m)+" t"+(n.pl?" ("+d3.format(",.3~r")(n.dm)+" t drive + "+d3.format(",.3~r")(n.m-n.dm)+" t reactor)":" drive only"))+(n.pl?"<br>Reactor: "+n.pl+" @ "+d3.format(",.3~r")(n.w)+" GW":"")+(n.m?"<br>Accel: "+d3.format(",.3~r")(n.t/(n.m*1000))+" m/s² (drive + reactor only)":"")+"<br>Research: "+(Number.isFinite(n.r)?d3.format(",")(n.r)+" RP across "+n.i+" items":"not researchable");const b=R.getBoundingClientRect(),u=T.getBoundingClientRect();T.style.left=Math.min(R.clientWidth-u.width-4,ev.clientX-b.left+12)+"px";T.style.top=Math.max(0,ev.clientY-b.top-u.height-10)+"px"}
 const B=d3.select(R.querySelector("nav")).selectAll("span").data(C).join("span");B.append("i").style("--c",c=>K.get(c));B.append("small").text(nice);
-const hit=v=>{const q=Q.value.trim().toLowerCase();return q&&[v.n,nice(v.c),nice(v.p)].join(" ").toLowerCase().includes(q)};
+const hit=v=>{const q=Q.value.trim().toLowerCase();return q&&[v.n,nice(v.c),nice(v.p),v.pl||""].join(" ").toLowerCase().includes(q)};
 function mark(){const q=Q.value.trim();S.selectAll("circle").classed("match",v=>q&&hit(v)).classed("miss",v=>q&&!hit(v));F.textContent=base+(q?" · "+D.filter(hit).length+" match “"+q+"”":"")}
-Q.addEventListener("input",mark);
+Q.addEventListener("input",mark);Q2.addEventListener("change",draw);
 let base="";
 function draw(){const w=Math.max(320,R.clientWidth),h=w<420?420:440,m={top:12,right:18,bottom:58,left:w<420?64:76},d=D;S.attr("viewBox",`0 0 ${w} ${h}`).attr("height",h).selectAll("*").remove();const x=d3.scaleLog().domain(d3.extent(D,v=>v.e)).nice().range([m.left,w-m.right]),y=d3.scaleLog().domain(d3.extent(D,v=>v.t)).nice().range([h-m.bottom,m.top]);
 S.append("rect").attr("data-chart-frame","").attr("x",m.left).attr("y",m.top).attr("width",w-m.left-m.right).attr("height",h-m.top-m.bottom).attr("fill","none");S.append("g").attr("class","grid").attr("transform",`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).ticks(w<420?4:7).tickSize(-(h-m.top-m.bottom)).tickFormat(""));S.append("g").attr("class","grid").attr("transform",`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(6).tickSize(-(w-m.left-m.right)).tickFormat(""));S.append("g").attr("class","axis").attr("transform",`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).ticks(w<420?4:7,"~s"));S.append("g").attr("class","axis").attr("transform",`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(y.tickFormat(6,fmt)));S.append("text").attr("class","label").attr("data-axis","x").attr("x",(m.left+w-m.right)/2).attr("y",h-10).attr("text-anchor","middle").text("Exhaust velocity, EV (km/s) — higher is more fuel-efficient");S.append("text").attr("class","label").attr("data-axis","y").attr("transform","rotate(-90)").attr("x",-(m.top+h-m.bottom)/2).attr("y",14).attr("text-anchor","middle").text("Thrust per drive, x6 bank (N)");
 if(d.length>1){const z=stats(d),e=d3.extent(d,v=>v.e);S.append("line").attr("class","fit").attr("x1",x(e[0])).attr("y1",y(10**(z.a+z.b*Math.log10(e[0])))).attr("x2",x(e[1])).attr("y2",y(10**(z.a+z.b*Math.log10(e[1]))))}
-const costs=D.map(v=>v.r).filter(Number.isFinite),radius=d3.scaleSqrt().domain(d3.extent(costs)).range([3,16]);S.append("g").selectAll("circle").data(d).join("circle").attr("cx",v=>x(v.e)).attr("cy",v=>y(v.t)).attr("r",v=>Number.isFinite(v.r)?radius(v.r):3).attr("fill",v=>K.get(v.c));S.append("rect").attr("data-chart-hit","").attr("data-chart-hover-overlay","cross-series").attr("x",m.left).attr("y",m.top).attr("width",w-m.left-m.right).attr("height",h-m.top-m.bottom).attr("fill","transparent").on("pointermove",function(ev){const[p,q]=d3.pointer(ev,this),n=d3.least(d,v=>Math.hypot(x(v.e)-p,y(v.t)-q));S.selectAll("circle").classed("hot",v=>v===n);showTip(ev,n)}).on("pointerleave",()=>{T.style.display="none";S.selectAll("circle").classed("hot",false)});base=d.length+" designs · log–log Pearson r = "+stats(d).r.toFixed(2)+" · dashed line = linear fit in log space";mark()}
+const Z=Q2.value,sized=D.map(v=>v[Z]).filter(Number.isFinite),radius=d3.scaleSqrt().domain(d3.extent(sized)).range([3,16]);S.append("g").selectAll("circle").data(d).join("circle").attr("cx",v=>x(v.e)).attr("cy",v=>y(v.t)).attr("r",v=>Number.isFinite(v[Z])?radius(v[Z]):3).attr("fill",v=>K.get(v.c));S.append("rect").attr("data-chart-hit","").attr("data-chart-hover-overlay","cross-series").attr("x",m.left).attr("y",m.top).attr("width",w-m.left-m.right).attr("height",h-m.top-m.bottom).attr("fill","transparent").on("pointermove",function(ev){const[p,q]=d3.pointer(ev,this),n=d3.least(d,v=>Math.hypot(x(v.e)-p,y(v.t)-q));S.selectAll("circle").classed("hot",v=>v===n);showTip(ev,n)}).on("pointerleave",()=>{T.style.display="none";S.selectAll("circle").classed("hot",false)});base=d.length+" designs · log–log Pearson r = "+stats(d).r.toFixed(2)+" · dashed line = linear fit in log space";mark()}
 R.querySelector(".best").addEventListener("pointermove",ev=>{const row=ev.target.closest("[data-drive]");row?showTip(ev,D.find(d=>d.n===row.dataset.drive)):T.style.display="none"});R.querySelector(".best").addEventListener("pointerleave",()=>T.style.display="none");new ResizeObserver(draw).observe(R);draw()})();
 </script>

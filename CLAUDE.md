@@ -55,6 +55,12 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
 - `drives/research-costs.js` — `researchClosure` is the core: total cost of a set of roots counts
   shared prereqs **once**, so always pass all roots together rather than summing sticker prices.
   A negative `researchCost` means unresearchable and propagates as `null`.
+- `drives/propulsion.js` — a drive is only half a package: `req power` (GW, string with commas)
+  is drawn from a power plant of the class named in `requiredPowerPlant` (`Any_General` = any),
+  and that plant's mass is `req power × specificPower_tGW`, capped by its `maxOutput_GW`. It picks
+  the cheapest-to-research viable plant and prices drive + plant as *one* closure. Open-cycle
+  drives (`req power` 0) carry their own reactor via `flatMass_tons` / `specificPower_kgMW`.
+  Radiators, tanks and hull are not modelled.
 - `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
   brackets; alien drives are excluded upstream in `build-chart.js` because they are loot.
 - `unifications/unifications.js` — the whole world model. `buildWorld` turns `Claim` bilaterals
