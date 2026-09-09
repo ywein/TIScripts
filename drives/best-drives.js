@@ -11,9 +11,9 @@ const { loadPropulsion } = require("./propulsion");
 // the trip costs in months of production on the same scale. Injected verbatim into the page, which
 // re-runs it against whatever hull and Δv you type in — this is the only copy of the formula.
 function driveScore({ accel_ms2, supplyMonths, propellantRatio }) {
-  const USABLE = 0.02; // m/s^2 — tiny but flyable, the reference point
-  const GOOD = 0.1; // more acceleration than this is pleasant, not valuable
-  const DEAD = 0.002; // below this the drive cannot usefully move the ship at all
+  const USABLE = 0.02; // m/s^2, about 2 milli-g — tiny but flyable, the reference point
+  const GOOD = 0.1; // ~10 milli-g: more acceleration than this is pleasant, not valuable
+  const DEAD = 0.002; // 0.2 milli-g, the game's own floor for a ship that can still manoeuvre
   const TANKAGE = 3; // tons of propellant per ton of ship before the design is a joke
   if (!(accel_ms2 >= DEAD) || !(supplyMonths > 0)) return null;
   if (propellantRatio > TANKAGE) return null;
