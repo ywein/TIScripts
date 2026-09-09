@@ -12,16 +12,13 @@ No framework, no dependencies — plain Node (CommonJS) and plain HTML.
 
 The `templates/` directory is **not committed** — it is game assets. Copy it out of your
 Terra Invicta install (under `TerraInvicta_Data/StreamingAssets`, base game plus the
-`broken_earth` addon, which is the scenario these pages target) so it looks like this:
+`broken_earth` from `dark skyes` dlc, which is the scenario these pages target) so it looks like this:
 
 ```
 templates/
   base/Templates/*.json      base/l10n/*.en
   broken_earth/Templates/*.json   broken_earth/l10n/*.en
 ```
-
-Other addons (`2003`) can sit alongside; nothing reads them. `templates.js` is the only place
-that knows this layout.
 
 ## Build
 
