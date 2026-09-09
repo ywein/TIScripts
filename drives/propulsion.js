@@ -31,8 +31,9 @@ const viablePlants = (plants, drive) => {
 
 // Open-cycle drives throw their waste heat out of the nozzle. Everything else has to radiate
 // what the reactor does not turn into power.
-// ponytail: "Calc" cooling is treated as closed-cycle; if the game computes it from the drive's
-// own efficiency instead, this is the one line to change.
+// "Calc" cooling behaves as closed-cycle: checked against the game's ship builder, where a
+// Helicon Drive x6 on a Solid Core Fission Reactor IV reports 286 t of reactor and 521.8 t of
+// Tin Droplet radiator, against 286.18 t and 521.68 t here.
 const wasteHeat_GW = (drive, plant) =>
   drive.cooling === "Open" ? 0 : (1 - plant.efficiency) * num(drive["req power"]);
 

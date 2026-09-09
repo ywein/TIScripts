@@ -61,7 +61,8 @@ base+addon directory pair, which is how `loadNationNames` finds both l10n files.
   the cheapest-to-research viable plant and prices drive + plant as *one* closure. Open-cycle
   drives (`req power` 0) carry their own reactor via `flatMass_tons` / `specificPower_kgMW`.
   Waste heat is `(1 - plant efficiency) × req power` for anything not `cooling: "Open"`, rejected
-  by Tin Droplet radiators at `1000 / specificPower_2s_KWkg` tons per GW. Tanks and hull are not
+  by Tin Droplet radiators at `1000 / specificPower_2s_KWkg` tons per GW. Both formulas were
+  checked against the game's ship builder (Helicon x6: 286 t reactor, 521.8 t radiator). Tanks and hull are not
   modelled.
 - `drives/best-drives.js` — Pareto frontier over (exhaust velocity, thrust) inside research-cost
   brackets; alien drives are excluded upstream in `build-chart.js` because they are loot.
