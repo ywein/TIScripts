@@ -19,10 +19,20 @@ function pareto(drives) {
   );
 }
 
+// The x6 variant is what anyone actually builds; Orion-type drives only come as x1.
+function largestVariants(drives) {
+  const best = new Map();
+  for (const drive of drives) {
+    const name = drive.friendlyName.replace(/ x\d+$/, "");
+    const previous = best.get(name);
+    if (!previous || drive.thrusters > previous.thrusters) best.set(name, drive);
+  }
+  return [...best.values()];
+}
+
 function bestByBracket(drives) {
-  const usable = drives.filter(
+  const usable = largestVariants(drives).filter(
     (drive) =>
-      drive.thrusters === 1 &&
       drive.EV_kps > 0 &&
       drive.thrust_N > 0 &&
       Number.isFinite(drive.totalResearchCost),
@@ -31,7 +41,7 @@ function bestByBracket(drives) {
     pareto(items)
       .sort((a, b) => a.totalResearchCost - b.totalResearchCost)
       .map(({ friendlyName, totalResearchCost, EV_kps, thrust_N }) => ({
-        drive: friendlyName.replace(/ x1$/, ""),
+        drive: friendlyName.replace(/ x\d+$/, ""),
         researchCost: totalResearchCost,
         fuelEfficiency_kps: EV_kps,
         thrust_N,
@@ -55,4 +65,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { bestByBracket, pareto };
+module.exports = { bestByBracket, largestVariants, pareto };

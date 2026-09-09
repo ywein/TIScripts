@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { calculateResearchCosts } = require("./research-costs");
-const { bestByBracket } = require("./best-drives");
+const { bestByBracket, largestVariants } = require("./best-drives");
 const { loadTemplates } = require("../templates");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
@@ -15,10 +15,10 @@ const drives = calculateResearchCosts(
 );
 // Alien drives are loot, not a research target: they only ever arrive from captured hulls.
 const isAlien = (drive) => drive.requiredProjectName.startsWith("Project_Alien");
-const chartData = drives
-  .filter((drive) => !isAlien(drive) && drive.thrusters === 1 && drive.EV_kps > 0 && drive.thrust_N > 0)
+const chartData = largestVariants(drives)
+  .filter((drive) => !isAlien(drive) && drive.EV_kps > 0 && drive.thrust_N > 0)
   .map((drive) => ({
-    n: drive.friendlyName.replace(/ x1$/, ""),
+    n: drive.friendlyName.replace(/ x\d+$/, ""),
     c: drive.driveClassification,
     e: drive.EV_kps,
     t: drive.thrust_N,
@@ -27,8 +27,8 @@ const chartData = drives
     p: drive.propellant,
     f: drive.perTankPropellantMaterials,
   }));
-const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x1");
-if (!helicon) throw new Error("Helicon Drive x1 not found");
+const helicon = drives.find((drive) => drive.friendlyName === "Helicon Drive x6");
+if (!helicon) throw new Error("Helicon Drive x6 not found");
 const escape = (text) =>
   text
     .replaceAll("&", "&amp;")
