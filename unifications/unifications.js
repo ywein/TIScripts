@@ -119,50 +119,79 @@ function unify(world, startId, { projects = true, launder = false } = {}) {
   // What an edge costs to walk: free peaceful claims first, then research, and laundering last —
   // it buys the same nation but only after a war and years of waiting for the claim to cool.
   const tier = (e) => (e.launder ? 2 : 0) + (e.project ? 1 : 0);
-  const bloc = new Map([[startId, { step: 0, via: null, project: null, region: null, launder: false }]]);
-  const joinable = (edges) =>
-    edges
-      .filter((e) => bloc.has(e.from))
-      .sort((a, b) => tier(a) - tier(b) || bloc.get(a.from).step - bloc.get(b.from).step)[0];
-  const attach = (id, e) =>
-    bloc.set(id, { step: bloc.get(e.from).step + 1, via: e.from, project: e.project, region: e.region, launder: !!e.launder });
-  const pending = () => [...incoming].filter(([id, edges]) => !bloc.has(id) && edges.some((e) => bloc.has(e.from)));
-  for (;;) {
-    let grew = false;
-    for (const [id, edges] of pending()) {
-      const free = joinable(edges.filter((e) => !tier(e)));
-      if (free) (attach(id, free), (grew = true));
+  // `banned` nations may not be reached by laundering — a peaceful claim on them still counts.
+  const build = (banned) => {
+    const open = new Map(
+      [...incoming]
+        .map(([id, edges]) => [id, banned.has(id) ? edges.filter((e) => !e.launder) : edges])
+        .filter(([, edges]) => edges.length),
+    );
+    const bloc = new Map([[startId, { step: 0, via: null, project: null, region: null, launder: false }]]);
+    const joinable = (edges) =>
+      edges
+        .filter((e) => bloc.has(e.from))
+        .sort((a, b) => tier(a) - tier(b) || bloc.get(a.from).step - bloc.get(b.from).step)[0];
+    const attach = (id, e) =>
+      bloc.set(id, { step: bloc.get(e.from).step + 1, via: e.from, project: e.project, region: e.region, launder: !!e.launder });
+    const pending = () => [...open].filter(([id, edges]) => !bloc.has(id) && edges.some((e) => bloc.has(e.from)));
+    for (;;) {
+      let grew = false;
+      for (const [id, edges] of pending()) {
+        const free = joinable(edges.filter((e) => !tier(e)));
+        if (free) (attach(id, free), (grew = true));
+      }
+      if (grew) continue;
+      // Nothing is free: pay for the cheapest nation nobody can annex for free, so the free claims
+      // that nation carries stay available for the round after.
+      const waiting = pending().sort((a, b) => tier(joinable(a[1])) - tier(joinable(b[1])));
+      const [id, edges] = waiting.find(([i]) => !open.get(i).some((e) => !tier(e))) || waiting[0] || [];
+      if (!id) break;
+      attach(id, joinable(edges));
     }
-    if (grew) continue;
-    // Nothing is free: pay for the cheapest nation nobody can annex for free, so the free claims
-    // that nation carries stay available for the round after.
-    const waiting = pending().sort((a, b) => tier(joinable(a[1])) - tier(joinable(b[1])));
-    const [id, edges] = waiting.find(([i]) => !incoming.get(i).some((e) => !tier(e))) || waiting[0] || [];
-    if (!id) break;
-    attach(id, joinable(edges));
+    const regions = new Set();
+    for (const id of bloc.keys()) for (const r of world.nations.get(id).regions) regions.add(r);
+    // Leftover claims on nations we could not swallow whole: land grabs, one region at a time.
+    const leftover = [];
+    for (const id of bloc.keys())
+      for (const c of world.nations.get(id).claims) if (!regions.has(c.region) && allowed(c)) leftover.push({ ...c, by: id });
+    // A region a capital strike sweeps up anyway is not worth a move of its own — taking it early
+    // just shuffles it between hands that both end up ours. So a claim riding an existing strike
+    // beats a standalone grab, which beats a war of its own; ungated breaks the tie.
+    const front = (c) => `${c.by}|${world.ownerOf.get(c.region)}`;
+    const strikes = new Map();
+    for (const c of leftover) if (c.hostile) strikes.set(front(c), (strikes.get(front(c)) || 0) + 1);
+    const cost = (c) => (c.hostile ? (strikes.get(front(c)) > 1 ? 0 : 2) : 1) + (c.project ? 0.5 : 0);
+    const grabs = new Map();
+    for (const c of leftover) {
+      const prev = grabs.get(c.region);
+      if (!prev || cost(c) < cost(prev)) grabs.set(c.region, c);
+    }
+    const projectsNeeded = new Set();
+    for (const m of bloc.values()) if (m.project) projectsNeeded.add(m.project);
+    for (const g of grabs.values()) if (g.project) projectsNeeded.add(g.project);
+    return { bloc, regions, grabs, projectsNeeded };
+  };
+
+  let best = build(new Set());
+  // A laundering is only worth its war if it ends up holding ground a war alone would not: the
+  // victim's unclaimed regions, or whatever its own claims bring in once it is released. Where the
+  // hostile claims already cover everything, conquer and keep it — releasing it to unify it again
+  // is a decade of waiting for land you are standing on. Drop those, deepest first, since a
+  // pointless laundering can be the only thing propping up the next one.
+  if (launder) {
+    const held = (r) => [...r.regions, ...r.grabs.keys()].sort().join(",");
+    const candidates = [...best.bloc]
+      .filter(([, m]) => m.launder)
+      .sort((a, b) => b[1].step - a[1].step)
+      .map(([id]) => id);
+    const banned = new Set();
+    for (const id of candidates) {
+      if (!best.bloc.get(id)?.launder) continue; // already gone, dropped along with an earlier one
+      const trial = build(new Set([...banned, id]));
+      if (held(trial) === held(best)) (banned.add(id), (best = trial));
+    }
   }
-  const regions = new Set();
-  for (const id of bloc.keys()) for (const r of world.nations.get(id).regions) regions.add(r);
-  // Leftover claims on nations we could not swallow whole: land grabs, one region at a time.
-  const leftover = [];
-  for (const id of bloc.keys())
-    for (const c of world.nations.get(id).claims) if (!regions.has(c.region) && allowed(c)) leftover.push({ ...c, by: id });
-  // A region a capital strike sweeps up anyway is not worth a move of its own — taking it early
-  // just shuffles it between hands that both end up ours. So a claim riding an existing strike
-  // beats a standalone grab, which beats a war of its own; ungated breaks the tie.
-  const front = (c) => `${c.by}|${world.ownerOf.get(c.region)}`;
-  const strikes = new Map();
-  for (const c of leftover) if (c.hostile) strikes.set(front(c), (strikes.get(front(c)) || 0) + 1);
-  const cost = (c) => (c.hostile ? (strikes.get(front(c)) > 1 ? 0 : 2) : 1) + (c.project ? 0.5 : 0);
-  const grabs = new Map();
-  for (const c of leftover) {
-    const prev = grabs.get(c.region);
-    if (!prev || cost(c) < cost(prev)) grabs.set(c.region, c);
-  }
-  const projectsNeeded = new Set();
-  for (const m of bloc.values()) if (m.project) projectsNeeded.add(m.project);
-  for (const g of grabs.values()) if (g.project) projectsNeeded.add(g.project);
-  return { start: startId, bloc, regions, grabs, projectsNeeded, launder, reach: regions.size + grabs.size };
+  return { start: startId, ...best, launder, reach: best.regions.size + best.grabs.size };
 }
 
 // Claims are granted to a specific nation. Annex that nation and its claims die with it —

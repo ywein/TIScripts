@@ -106,13 +106,19 @@ bound. With it on, a hostile claim on a capital becomes an annexation edge like 
 grows the bloc and the released nation's own claims come with it — recursively, since a released
 nation's hostile capital claims can be laundered in turn using the nation you just released.
 
+**A laundering that gains nothing is dropped.** If hostile claims already cover every region the
+victim holds and it has no claims of its own to press, releasing it just to unify it again buys land
+you are already standing on. Those launderings are pruned — deepest first, since a pointless one can
+be the only thing propping up the next — and the region reverts to an ordinary war grab. Pruning
+never changes the ground the bloc ends up holding; it only removes wars and waiting.
+
 Route choice ranks edges by what they cost to walk: free peaceful claim (0) → project-gated peaceful
 claim (1) → laundering (2) → gated laundering (3), cheapest first. So laundering is only used where
 nothing else reaches, and a nation reachable both ways is still taken peacefully.
 
 Laundered steps count toward the war tally — each one is a real war.
 
-**The result is deliberately extreme.** Turned on, Bavaria absorbs 148 nations and 4.17B people,
+**The result is deliberately extreme.** Turned on, the largest blocs reach 298 regions and 4.17B people,
 because nearly every hostile capital claim on the map becomes an edge and 386 of them exist. Nothing
 caps the waiting: each step is a war plus an unbounded random wait, and the waits stack. Read the
 laundered view as the outer limit of what the claim graph permits, not as a plan.

@@ -69,6 +69,7 @@ const launderChain = buildWorld([
   claim("B", "Bcap", { capitalClaim: true, initialOwner: true }),
   claim("C", "Ccap", { capitalClaim: true, initialOwner: true }),
   claim("D", "Dcap", { capitalClaim: true, initialOwner: true }),
+  claim("D", "Dland", { initialOwner: true }), // unclaimed, so laundering D beats conquering it
   claim("A", "Ccap", { hostileClaim: true }),
   claim("C", "Dcap", { hostileClaim: true }), // only laundered once C is back on the map
   claim("C", "Bcap"),
@@ -79,6 +80,18 @@ assert.deepEqual(kinds[0], ["launder:C"]); // start the long wait immediately
 assert.deepEqual(kinds[1], ["launder:D"]); // C can only launder D after C is released
 assert.deepEqual(kinds.at(-1), ["annex:C"]); // ...and C is swallowed only once it has spent its claims
 assert.ok(kinds.flat().indexOf("annex:B") < kinds.flat().indexOf("annex:C"));
+
+// Laundering a nation you have already stripped bare buys nothing: E owns only its capital and has
+// no claims of its own, so the war is the whole story and there is nothing to release it for.
+const bare = buildWorld([
+  claim("A", "Acap", { capitalClaim: true, initialOwner: true }),
+  claim("E", "Ecap", { capitalClaim: true, initialOwner: true }),
+  claim("A", "Ecap", { hostileClaim: true }),
+]);
+const stripped = unify(bare, "A", { launder: true });
+assert.deepEqual([...stripped.bloc.keys()], ["A"]); // conquer it and keep it
+assert.deepEqual([...stripped.grabs.keys()], ["Ecap"]);
+assert.equal(stripped.reach, 2); // same ground either way
 
 // Peaceful routes are still preferred: an ungated peaceful claim beats laundering the same nation.
 const both = buildWorld([
