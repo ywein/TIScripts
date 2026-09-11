@@ -311,7 +311,9 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     from events and cannot be researched. Rows marked FORM FIRST belong to nations that hold no land at the Broken Earth start.
     <em>Launder hostile claims</em> counts the conquer&ndash;wait&ndash;release&ndash;unify trick: a hostile claim on a capital
     cools into a peaceful one if you hold the region long enough, so the nation can be released, spend its own claims, and
-    then be unified whole. It is off by default &mdash; it costs a war and years of waiting per step, and the waits stack.
+    then be unified whole. The waiting is a random roll across every hostile region you hold, so all the laundering is done
+    first, in the opening phases, and the unifications it enables land much later. It is off by default &mdash; every step
+    costs a war and an open-ended wait.
   </footer>
 </div>
 
@@ -337,13 +339,20 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
   };
 
   const move = (mv) => {
-    const war = mv.kind === "war" || mv.launder;
-    const verb = mv.launder ? "conquers, releases, unifies" : mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
+    const war = mv.kind === "war" || mv.kind === "launder";
+    const verb = mv.kind === "launder" ? "takes and releases" : mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
+    // A laundering moves nothing yet, so its population is the capital it sits on, not a gain.
+    const tail =
+      mv.kind === "launder"
+        ? ` <span class="verb">&mdash; claim cools, unified later</span>`
+        : mv.launder
+          ? ` <span class="verb">&mdash; laundered earlier</span>`
+          : "";
     return `<div class="move">
       <span><span class="target">${esc(mv.by)}</span>
         <span class="verb${war ? " war" : ""}">${verb}</span>
-        <span class="target">${esc(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}</span>
-      <span class="pop">${m(mv.pop)}</span>
+        <span class="target">${esc(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}${tail}</span>
+      <span class="pop">${mv.kind === "launder" ? DASH : m(mv.pop)}</span>
       ${mv.project ? `<span class="gate">requires ${esc(mv.project)}</span>` : ""}
     </div>`;
   };

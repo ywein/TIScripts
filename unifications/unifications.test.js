@@ -62,6 +62,24 @@ assert.deepEqual([...laundered.bloc.keys()], ["A", "C", "B"]); // C whole, and B
 assert.equal(laundered.bloc.get("C").launder, true);
 assert.equal(laundered.bloc.get("B").launder, false); // B joins peacefully, through a released C
 assert.equal(laundered.grabs.size, 0);
+// The war half of a laundering runs first, the unification it unlocks lands at the end: C is
+// conquered and released in phase 1, spends its own claim on B, and is only unified afterwards.
+const launderChain = buildWorld([
+  claim("A", "Acap", { capitalClaim: true, initialOwner: true }),
+  claim("B", "Bcap", { capitalClaim: true, initialOwner: true }),
+  claim("C", "Ccap", { capitalClaim: true, initialOwner: true }),
+  claim("D", "Dcap", { capitalClaim: true, initialOwner: true }),
+  claim("A", "Ccap", { hostileClaim: true }),
+  claim("C", "Dcap", { hostileClaim: true }), // only laundered once C is back on the map
+  claim("C", "Bcap"),
+]);
+const chained = plan(launderChain, unify(launderChain, "A", { launder: true }));
+const kinds = chained.map((phase) => phase.map((m) => [m.kind, m.nation].join(":")).sort());
+assert.deepEqual(kinds[0], ["launder:C"]); // start the long wait immediately
+assert.deepEqual(kinds[1], ["launder:D"]); // C can only launder D after C is released
+assert.deepEqual(kinds.at(-1), ["annex:C"]); // ...and C is swallowed only once it has spent its claims
+assert.ok(kinds.flat().indexOf("annex:B") < kinds.flat().indexOf("annex:C"));
+
 // Peaceful routes are still preferred: an ungated peaceful claim beats laundering the same nation.
 const both = buildWorld([
   claim("A", "Acap", { capitalClaim: true, initialOwner: true }),

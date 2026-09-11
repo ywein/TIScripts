@@ -240,7 +240,7 @@ const mpop = (world, region) => `${(world.pop.get(region) || 0).toFixed(1)}M`;
 
 function summary(u, world) {
   // One war on a capital collects several regions, so count operations, not regions.
-  const wars = plan(world, u).flat().filter((m) => m.kind === "war" || m.launder).length;
+  const wars = plan(world, u).flat().filter((m) => m.kind === "war" || m.kind === "launder").length;
   const held = population(world, u.regions);
   const seized = population(world, u.grabs.keys());
   const lines = [
@@ -287,6 +287,26 @@ function plan(world, u) {
       projects: whole ? [...whole.projects] : g.project ? [g.project] : [],
     });
   }
+  // The conquest half of a laundering is not the annexation: you take the capital, sit on it until
+  // the claim cools, release the nation and only then — much later, after it has spent its own
+  // claims — unify it. The wait is a random roll across every hostile region you hold, so it starts
+  // as early as possible and every laundering is its own phase ahead of the rest of the plan. A
+  // nation can only launder once you control it, so one done by a released nation waits for that
+  // release: depth 1 goes first, then depth 2, and so on.
+  const releaseDepth = (id) => (u.bloc.get(id)?.launder ? 1 + releaseDepth(u.bloc.get(id).via) : 0);
+  const laundered = [...u.bloc].filter(([, m]) => m.launder);
+  const top = Math.max(0, ...moves.map((m) => m.level));
+  const deepest = Math.max(0, ...laundered.map(([id]) => releaseDepth(id)));
+  for (const [id, m] of laundered)
+    moves.push({
+      level: top + 1 + deepest - releaseDepth(id),
+      kind: "launder",
+      by: m.via,
+      nation: id,
+      region: m.region,
+      project: m.project,
+      launder: true,
+    });
   const phases = [...new Set(moves.map((m) => m.level))]
     .sort((a, b) => b - a)
     .map((level) => moves.filter((m) => m.level === level));
@@ -298,9 +318,10 @@ function plan(world, u) {
   for (const phase of phases) {
     for (const m of phase) {
       m.byRegions = owned.get(m.by);
-      m.nationRegions = m.kind === "annex" ? owned.get(m.nation) : m.regions.length;
+      m.nationRegions = m.kind === "war" || m.kind === "grab" ? m.regions.length : owned.get(m.nation);
     }
-    for (const m of phase) owned.set(m.by, owned.get(m.by) + m.nationRegions);
+    // A laundering conquers a capital and hands it straight back, so nobody's holdings change.
+    for (const m of phase) if (m.kind !== "launder") owned.set(m.by, owned.get(m.by) + m.nationRegions);
   }
   return phases;
 }
@@ -318,14 +339,17 @@ function report(u, world) {
     lines.push(`  --- phase ${i + 1} ---`);
     for (const m of moves)
       lines.push(
-        (m.kind === "annex"
-          ? `  ${name(world, m.by, m.byRegions)} ${m.launder ? "LAUNDERS" : "UNIFIES"} ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
-            `(+${holdings(world, u, m.nation).length} regions, ${population(world, holdings(world, u, m.nation)).toFixed(1)}M)`
-          : m.regions.length > 1
+        (m.kind === "launder"
+          ? `  ${name(world, m.by, m.byRegions)} takes and RELEASES ${name(world, m.nation, m.nationRegions)} via ${region(world, m.region)} ` +
+            `(claim laundered, unified later)`
+          : m.kind === "annex"
+            ? `  ${name(world, m.by, m.byRegions)} UNIFIES ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
+              `(+${holdings(world, u, m.nation).length} regions, ${population(world, holdings(world, u, m.nation)).toFixed(1)}M)${m.launder ? " [laundered]" : ""}`
+            : m.regions.length > 1
             ? `  ${name(world, m.by, m.byRegions)} conquers ${name(world, m.victim)} via ${region(world, m.region)} ` +
               `(+${m.regions.length} regions, ${population(world, m.regions).toFixed(1)}M)${m.killed ? " — destroyed" : " — survives"}`
             : `  ${name(world, m.by, m.byRegions)} ${m.kind === "war" ? "conquers" : "takes"} ${region(world, m.region)} (${mpop(world, m.region)})`) +
-          (m.kind === "annex"
+          (m.kind === "annex" || m.kind === "launder"
             ? m.project
               ? ` [${short(m.project)}]`
               : ""

@@ -35,11 +35,24 @@ const phases = (u) =>
   plan(world, u).map((moves) =>
     moves
       .map((m) =>
-        m.kind === "annex"
+        m.kind === "launder"
+          ? {
+              // The war half of a laundering: take the capital, wait out the hostility, hand the
+              // nation back. It gains nothing now — the unification lands phases later.
+              kind: "launder",
+              launder: true,
+              by: name(world, m.by, m.byRegions),
+              what: name(world, m.nation, m.nationRegions),
+              where: region(world, m.region),
+              pop: population(world, [m.region]),
+              regions: 1,
+              project: m.project ? pname(m.project) : null,
+            }
+          : m.kind === "annex"
           ? {
               kind: "annex",
-              // Laundered: the capital claim was hostile, so this nation is conquered, waited out,
-              // released and only then unified whole. One war, and years of it.
+              // Laundered: this nation's capital claim was hostile, so it was conquered and
+              // released phases ago; only the unification happens here.
               launder: !!m.launder,
               by: name(world, m.by, m.byRegions),
               what: name(world, m.nation, m.nationRegions),
@@ -76,7 +89,7 @@ const describe = (latent) => (u) => {
     held: population(world, u.regions),
     grabbed: population(world, grabs.filter((g) => !g.hostile).map((g) => g.region)),
     seized: population(world, warRegions),
-    wars: phaseList.flat().filter((m) => m.kind === "war" || m.launder).length,
+    wars: phaseList.flat().filter((m) => m.kind === "war" || m.kind === "launder").length,
     ...researchBill(projects),
     projects: projects.map(pname).sort(),
     keep: risks(world, u)

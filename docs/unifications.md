@@ -76,12 +76,28 @@ convert, release, and Colombia — which carries nine hostile capital claims of 
 `Project_UnidadColombia`, and reaches 9 nations / 43 regions / ~850M on its own — can be absorbed
 whole afterwards instead of being stripped one region at a time.
 
-### Why early
+### Why early — and why the two halves are far apart
 
 The flip is a random roll across your hostile holdings, one at a time. Ten hostile regions means the
 one you actually need may not come up for decades. So conquer **only** what you need to convert, and
 convert it **early**, while the pool is small. Every unrelated hostile region you are sitting on is
 competing for the same roll.
+
+That splits a laundering into two moves that sit at opposite ends of the plan:
+
+- **The war, first.** Take the capital, wait it out, release the nation. Start the clock on turn one.
+- **The unification, last.** The released nation still has to spend its own claims before it is
+  swallowed, exactly like any other bloc member.
+
+Conquer Russia early, launder the capital claim, release it, let it gather everything its own claims
+reach — then unify it.
+
+`plan()` reflects that: every laundering is hoisted ahead of the whole plan, and the annexation it
+enables stays at its normal depth. Launderings are ordered among themselves by how many releases
+they wait on — a nation can only press its own hostile claim once you control it, so a laundering by
+a released nation is one phase behind the laundering that released it. In the CLI a laundering reads
+`takes and RELEASES X`; the later annexation is marked `[laundered]`. It counts as the war, so the
+war tally does not double-count.
 
 ### How it is modelled
 
@@ -94,8 +110,7 @@ Route choice ranks edges by what they cost to walk: free peaceful claim (0) → 
 claim (1) → laundering (2) → gated laundering (3), cheapest first. So laundering is only used where
 nothing else reaches, and a nation reachable both ways is still taken peacefully.
 
-Laundered steps print as `LAUNDERS` in the CLI report, read "conquers, releases, unifies" on the
-page, and count toward the war tally — each one is a real war.
+Laundered steps count toward the war tally — each one is a real war.
 
 **The result is deliberately extreme.** Turned on, Bavaria absorbs 148 nations and 4.17B people,
 because nearly every hostile capital claim on the map becomes an edge and 386 of them exist. Nothing
