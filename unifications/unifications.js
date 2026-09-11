@@ -85,15 +85,17 @@ function buildWorld(claims, { omni = OMNI_NATIONS, regions = [], names = [] } = 
 // A peaceful claim on a region that is its owner's capital swallows the entire nation,
 // then that nation's own claims can no longer be pressed, so the annexation must happen after
 // it has used them: phases are printed deepest-first for that reason. Hostile claims take the
-// region only, so they never grow the claim pool and are reported separately.
-function annexTargets(world, nationId) {
+// region only, so they never grow the claim pool and are reported separately — unless `launder` is
+// on, which counts the conquer-wait-release-unify trick (docs/unifications.md) and so treats a
+// hostile capital claim as an annexation too, just a slower and bloodier one.
+function annexTargets(world, nationId, launder = false) {
   const out = [];
   for (const claim of world.nations.get(nationId).claims) {
-    if (claim.hostile) continue;
+    if (claim.hostile && !launder) continue;
     const target = world.ownerOf.get(claim.region);
     if (!target || target === nationId) continue;
     if (world.nations.get(target).capital !== claim.region) continue;
-    out.push({ target, ...claim });
+    out.push({ target, launder: !!claim.hostile, ...claim });
   }
   return out;
 }
@@ -102,34 +104,40 @@ function annexTargets(world, nationId) {
 // fewest claim unlocks: grow by free claims until nothing more is free, then spend one unlock and
 // try again. A nation deeper in the bloc presses its own free claim before it is annexed (phases
 // run deepest-first), so borrowing its claim costs nothing and stages the unification.
-function unify(world, startId, { projects = true } = {}) {
+function unify(world, startId, { projects = true, launder = false } = {}) {
   const allowed = (c) => projects || !c.project;
   const reach = new Set([startId]);
   const incoming = new Map(); // nation -> the claims that can swallow it whole
   for (const id of reach) {
-    for (const t of annexTargets(world, id)) {
+    for (const t of annexTargets(world, id, launder)) {
       if (!allowed(t) || t.target === startId) continue;
       reach.add(t.target); // Set iteration walks values appended during the loop
       if (!incoming.has(t.target)) incoming.set(t.target, []);
-      incoming.get(t.target).push({ from: id, project: t.project, region: t.region });
+      incoming.get(t.target).push({ from: id, project: t.project, region: t.region, launder: t.launder });
     }
   }
-  const bloc = new Map([[startId, { step: 0, via: null, project: null, region: null }]]);
+  // What an edge costs to walk: free peaceful claims first, then research, and laundering last —
+  // it buys the same nation but only after a war and years of waiting for the claim to cool.
+  const tier = (e) => (e.launder ? 2 : 0) + (e.project ? 1 : 0);
+  const bloc = new Map([[startId, { step: 0, via: null, project: null, region: null, launder: false }]]);
   const joinable = (edges) =>
-    edges.filter((e) => bloc.has(e.from)).sort((a, b) => bloc.get(a.from).step - bloc.get(b.from).step)[0];
-  const attach = (id, e) => bloc.set(id, { step: bloc.get(e.from).step + 1, via: e.from, project: e.project, region: e.region });
+    edges
+      .filter((e) => bloc.has(e.from))
+      .sort((a, b) => tier(a) - tier(b) || bloc.get(a.from).step - bloc.get(b.from).step)[0];
+  const attach = (id, e) =>
+    bloc.set(id, { step: bloc.get(e.from).step + 1, via: e.from, project: e.project, region: e.region, launder: !!e.launder });
   const pending = () => [...incoming].filter(([id, edges]) => !bloc.has(id) && edges.some((e) => bloc.has(e.from)));
   for (;;) {
     let grew = false;
     for (const [id, edges] of pending()) {
-      const free = joinable(edges.filter((e) => !e.project));
+      const free = joinable(edges.filter((e) => !tier(e)));
       if (free) (attach(id, free), (grew = true));
     }
     if (grew) continue;
-    // Nothing is free: spend an unlock on a nation nobody can annex for free, so the free claims
+    // Nothing is free: pay for the cheapest nation nobody can annex for free, so the free claims
     // that nation carries stay available for the round after.
-    const waiting = pending();
-    const [id, edges] = waiting.find(([i]) => !incoming.get(i).some((e) => !e.project)) || waiting[0] || [];
+    const waiting = pending().sort((a, b) => tier(joinable(a[1])) - tier(joinable(b[1])));
+    const [id, edges] = waiting.find(([i]) => !incoming.get(i).some((e) => !tier(e))) || waiting[0] || [];
     if (!id) break;
     attach(id, joinable(edges));
   }
@@ -154,7 +162,7 @@ function unify(world, startId, { projects = true } = {}) {
   const projectsNeeded = new Set();
   for (const m of bloc.values()) if (m.project) projectsNeeded.add(m.project);
   for (const g of grabs.values()) if (g.project) projectsNeeded.add(g.project);
-  return { start: startId, bloc, regions, grabs, projectsNeeded, reach: regions.size + grabs.size };
+  return { start: startId, bloc, regions, grabs, projectsNeeded, launder, reach: regions.size + grabs.size };
 }
 
 // Claims are granted to a specific nation. Annex that nation and its claims die with it —
@@ -177,7 +185,7 @@ function risks(world, u) {
   for (const id of scope) {
     const n = world.nations.get(id);
     const gates = new Set(n.claims.filter((c) => !c.hostile || c.project).map((c) => c.project).filter(Boolean));
-    const targets = annexTargets(world, id).filter((t) => scope.has(t.target));
+    const targets = annexTargets(world, id, u.launder).filter((t) => scope.has(t.target));
     if (!targets.length && !gates.size) continue;
     const traps = annexers(world, id).filter((a) => !a.project);
     rows.push({ id, gates, targets, traps, weight: targets.length * 10 + gates.size });
@@ -232,7 +240,7 @@ const mpop = (world, region) => `${(world.pop.get(region) || 0).toFixed(1)}M`;
 
 function summary(u, world) {
   // One war on a capital collects several regions, so count operations, not regions.
-  const wars = plan(world, u).flat().filter((m) => m.kind === "war").length;
+  const wars = plan(world, u).flat().filter((m) => m.kind === "war" || m.launder).length;
   const held = population(world, u.regions);
   const seized = population(world, u.grabs.keys());
   const lines = [
@@ -250,7 +258,8 @@ function summary(u, world) {
 function plan(world, u) {
   const moves = [];
   for (const [id, m] of u.bloc)
-    if (m.via) moves.push({ level: m.step, kind: "annex", by: m.via, nation: id, region: m.region, project: m.project });
+    if (m.via)
+      moves.push({ level: m.step, kind: "annex", by: m.via, nation: id, region: m.region, project: m.project, launder: m.launder });
   // Taking a nation's capital hands over every region of it the conqueror claims — the capital
   // itself only if claimed too — so several claims on one nation are ONE war. A lone claim is just
   // that region, captured directly. The victim survives on whatever it holds that nobody claimed.
@@ -310,7 +319,7 @@ function report(u, world) {
     for (const m of moves)
       lines.push(
         (m.kind === "annex"
-          ? `  ${name(world, m.by, m.byRegions)} UNIFIES ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
+          ? `  ${name(world, m.by, m.byRegions)} ${m.launder ? "LAUNDERS" : "UNIFIES"} ${name(world, m.nation, m.nationRegions)} whole via ${region(world, m.region)} ` +
             `(+${holdings(world, u, m.nation).length} regions, ${population(world, holdings(world, u, m.nation)).toFixed(1)}M)`
           : m.regions.length > 1
             ? `  ${name(world, m.by, m.byRegions)} conquers ${name(world, m.victim)} via ${region(world, m.region)} ` +
@@ -355,7 +364,11 @@ function mermaid(u) {
 
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const opts = { projects: !args.includes("--no-projects"), byPop: args.includes("--by-pop") };
+  const opts = {
+    projects: !args.includes("--no-projects"),
+    byPop: args.includes("--by-pop"),
+    launder: args.includes("--launder"),
+  };
   const wantMermaid = args.includes("--mermaid");
   const target = args.find((a) => !a.startsWith("--"));
   const world = loadWorld();

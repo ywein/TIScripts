@@ -38,6 +38,9 @@ const phases = (u) =>
         m.kind === "annex"
           ? {
               kind: "annex",
+              // Laundered: the capital claim was hostile, so this nation is conquered, waited out,
+              // released and only then unified whole. One war, and years of it.
+              launder: !!m.launder,
               by: name(world, m.by, m.byRegions),
               what: name(world, m.nation, m.nationRegions),
               where: region(world, m.region),
@@ -73,7 +76,7 @@ const describe = (latent) => (u) => {
     held: population(world, u.regions),
     grabbed: population(world, grabs.filter((g) => !g.hostile).map((g) => g.region)),
     seized: population(world, warRegions),
-    wars: phaseList.flat().filter((m) => m.kind === "war").length,
+    wars: phaseList.flat().filter((m) => m.kind === "war" || m.launder).length,
     ...researchBill(projects),
     projects: projects.map(pname).sort(),
     keep: risks(world, u)
@@ -89,18 +92,18 @@ const describe = (latent) => (u) => {
   };
 };
 
-const blocs = [
-  ...topBlocs(world, {}).map(describe(false)),
-  ...topBlocs(world, { starts: latentStarts(world) }).map(describe(true)),
-];
-
 // Below ~100M a "unification" is two neighbours merging: real, but not a mega-nation.
-const large = blocs
-  .filter((b) => b.held + b.grabbed + b.seized >= 100)
-  .sort((a, b) => b.held + b.grabbed + b.seized - (a.held + a.grabbed + a.seized));
+const variant = (opts) =>
+  [...topBlocs(world, opts).map(describe(false)), ...topBlocs(world, { ...opts, starts: latentStarts(world) }).map(describe(true))]
+    .filter((b) => b.held + b.grabbed + b.seized >= 100)
+    .sort((a, b) => b.held + b.grabbed + b.seized - (a.held + a.grabbed + a.seized));
+
+// Two worlds, one page: the page toggles between them. Laundering a hostile capital claim is a
+// player technique, not something the data says you may do, so it never becomes the default view.
+const sets = { plain: variant({}), launder: variant({ launder: true }) };
 
 const template = fs.readFileSync(path.join(__dirname, "unifications.template.html"), "utf8");
-const output = template.replace("__BLOCS__", JSON.stringify(large));
+const output = template.replace("__BLOCS__", JSON.stringify(sets));
 if (output.includes("__BLOCS__")) throw new Error("Template placeholder was not replaced");
 fs.writeFileSync(path.join(__dirname, "unifications.html"), output);
-console.log(`${large.length} of ${blocs.length} blocs -> unifications.html`);
+console.log(`${sets.plain.length} blocs (${sets.launder.length} with laundering) -> unifications.html`);

@@ -115,6 +115,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
 .sw-annex { background: var(--annex); }
 .sw-grab { background: var(--annex-soft); }
 .sw-war { background: var(--war); }
+.sw-launder { background: linear-gradient(90deg, var(--war) 50%, var(--annex) 50%); }
 
 .chip {
   padding: 1px 5px;
@@ -291,11 +292,13 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     </div>
     <div class="group">
       <button class="sort" type="button" id="latent-toggle" aria-pressed="true">Include unformed nations</button>
+      <button class="sort" type="button" id="launder-toggle" aria-pressed="false">Launder hostile claims</button>
     </div>
     <div class="key">
       <span><i class="sw-annex"></i>Nations unified whole</span>
       <span><i class="sw-grab"></i>Regions taken peacefully</span>
       <span><i class="sw-war"></i>Regions taken by war</span>
+      <span><i class="sw-launder"></i>Nations conquered, released, then unified</span>
     </div>
   </div>
 
@@ -306,14 +309,19 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     Phases are therefore ordered deepest-first: every nation spends its own claims before it is swallowed.
     Research totals are the full prereq closure, with shared prereqs counted once. Dashed project tags arrive
     from events and cannot be researched. Rows marked FORM FIRST belong to nations that hold no land at the Broken Earth start.
+    <em>Launder hostile claims</em> counts the conquer&ndash;wait&ndash;release&ndash;unify trick: a hostile claim on a capital
+    cools into a peaceful one if you hold the region long enough, so the nation can be released, spend its own claims, and
+    then be unified whole. It is off by default &mdash; it costs a war and years of waiting per step, and the waits stack.
   </footer>
 </div>
 
 <script>
 (() => {
-  const BLOCS = __BLOCS__;
+  const SETS = __BLOCS__;
   const list = document.getElementById("list");
-  const scale = Math.max(...BLOCS.map((b) => b.held + b.grabbed + b.seized));
+  const total = (b) => b.held + b.grabbed + b.seized;
+  // One scale across both views, so switching laundering on makes the bars grow rather than rescale.
+  const scale = Math.max(...[...SETS.plain, ...SETS.launder].map(total));
   const m = (v) => v.toFixed(v < 10 ? 1 : 0) + "M";
   const DASH = "\u2014";
   // rp null = the unlocks exist but arrive from events, so there is no research price to plan for.
@@ -323,14 +331,14 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
   const KEYS = {
-    people: (b) => b.held + b.grabbed + b.seized,
+    people: total,
     regions: (b) => b.regions,
     rp: (b) => -(b.rp ?? Infinity),
   };
 
   const move = (mv) => {
-    const war = mv.kind === "war";
-    const verb = mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
+    const war = mv.kind === "war" || mv.launder;
+    const verb = mv.launder ? "conquers, releases, unifies" : mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
     return `<div class="move">
       <span><span class="target">${esc(mv.by)}</span>
         <span class="verb${war ? " war" : ""}">${verb}</span>
@@ -348,7 +356,6 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     </div>`;
 
   const card = (b, i) => {
-    const total = b.held + b.grabbed + b.seized;
     const detailId = "d-" + b.id;
     return `<details class="bloc${b.latent ? " latent" : ""}" id="bloc-${esc(b.id)}">
       <summary class="row-head" aria-controls="${detailId}">
@@ -360,7 +367,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
           <b class="b-war" style="width:${pct(b.seized)}"></b>
         </span>
         <span class="figures">
-          <div><span class="pop-total">${m(total)}</span><u>people</u></div>
+          <div><span class="pop-total">${m(total(b))}</span><u>people</u></div>
           <div><span>${b.nations}</span><u>nations</u></div>
           <div><span>${b.regions}</span><u>regions</u></div>
           <div><span>${b.wars}</span><u>wars</u></div>
@@ -403,10 +410,12 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
 
   let sort = "people";
   let withLatent = true;
+  let withLaunder = false;
   const render = () => {
     const open = new Set([...list.querySelectorAll("details[open]")].map((d) => d.id));
     const key = KEYS[sort];
-    list.innerHTML = BLOCS.filter((b) => withLatent || !b.latent)
+    list.innerHTML = SETS[withLaunder ? "launder" : "plain"]
+      .filter((b) => withLatent || !b.latent)
       .sort((a, b) => key(b) - key(a))
       .map(card)
       .join("");
@@ -421,10 +430,17 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     render();
   });
 
-  for (const button of document.querySelectorAll("button.sort:not(#latent-toggle)")) {
+  const launderToggle = document.getElementById("launder-toggle");
+  launderToggle.addEventListener("click", () => {
+    withLaunder = !withLaunder;
+    launderToggle.setAttribute("aria-pressed", String(withLaunder));
+    render();
+  });
+
+  for (const button of document.querySelectorAll("button.sort[data-sort]")) {
     button.addEventListener("click", () => {
       sort = button.dataset.sort;
-      for (const other of document.querySelectorAll("button.sort:not(#latent-toggle)")) other.setAttribute("aria-pressed", String(other === button));
+      for (const other of document.querySelectorAll("button.sort[data-sort]")) other.setAttribute("aria-pressed", String(other === button));
       render();
     });
   }

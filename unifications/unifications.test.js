@@ -44,6 +44,35 @@ assert.deepEqual([...gated.grabs.keys()], ["Cland"]); // hostile claim only: one
 assert.equal(gated.grabs.get("Cland").hostile, true);
 assert.equal(gated.reach, 4); // 3 owned + Cland taken by war, which rides along if A is annexed
 
+// Laundering: A's hostile claim on Cland is not a capital claim, so it stays a war grab. Give A a
+// hostile claim on C's capital instead and --launder turns it into an annexation of all of C.
+const hostileCap = buildWorld([
+  claim("A", "Acap", { capitalClaim: true, initialOwner: true }),
+  claim("B", "Bcap", { capitalClaim: true, initialOwner: true }),
+  claim("C", "Ccap", { capitalClaim: true, initialOwner: true }),
+  claim("C", "Cland", { initialOwner: true }),
+  claim("A", "Ccap", { hostileClaim: true }),
+  claim("C", "Bcap"), // C's own claim, live again once C is released
+]);
+const plain = unify(hostileCap, "A");
+assert.deepEqual([...plain.bloc.keys()], ["A"]); // war on a capital takes the one region
+assert.deepEqual([...plain.grabs.keys()], ["Ccap"]);
+const laundered = unify(hostileCap, "A", { launder: true });
+assert.deepEqual([...laundered.bloc.keys()], ["A", "C", "B"]); // C whole, and B via C's own claim
+assert.equal(laundered.bloc.get("C").launder, true);
+assert.equal(laundered.bloc.get("B").launder, false); // B joins peacefully, through a released C
+assert.equal(laundered.grabs.size, 0);
+// Peaceful routes are still preferred: an ungated peaceful claim beats laundering the same nation.
+const both = buildWorld([
+  claim("A", "Acap", { capitalClaim: true, initialOwner: true }),
+  claim("B", "Bcap", { capitalClaim: true, initialOwner: true }),
+  claim("C", "Ccap", { capitalClaim: true, initialOwner: true }),
+  claim("A", "Ccap", { hostileClaim: true }),
+  claim("B", "Ccap"),
+  claim("A", "Bcap"),
+]);
+assert.equal(unify(both, "A", { launder: true }).bloc.get("C").via, "B");
+
 const fromB = unify(world, "B");
 assert.deepEqual([...fromB.bloc.keys()], ["B", "C"]); // claims do not flow backwards
 
