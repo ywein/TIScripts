@@ -209,12 +209,14 @@ function annexers(world, targetId) {
 }
 
 function risks(world, u) {
-  const scope = new Set(u.bloc.keys());
+  // Only the moves the plan actually hands this nation: a claim on a nation someone else unifies
+  // anyway is not a reason to wait, and neither is the project behind it.
   const rows = [];
-  for (const id of scope) {
-    const n = world.nations.get(id);
-    const gates = new Set(n.claims.filter((c) => !c.hostile || c.project).map((c) => c.project).filter(Boolean));
-    const targets = annexTargets(world, id, u.launder).filter((t) => scope.has(t.target));
+  for (const id of u.bloc.keys()) {
+    if (id === u.start) continue; // you, never swallowed
+    const targets = [...u.bloc].filter(([, m]) => m.via === id).map(([target, m]) => ({ target, project: m.project }));
+    const grabs = [...u.grabs.values()].filter((g) => g.by === id);
+    const gates = new Set([...targets, ...grabs].map((t) => t.project).filter(Boolean));
     if (!targets.length && !gates.size) continue;
     const traps = annexers(world, id).filter((a) => !a.project);
     rows.push({ id, gates, targets, traps, weight: targets.length * 10 + gates.size });

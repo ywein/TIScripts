@@ -111,7 +111,7 @@ assert.deepEqual([...fromB.bloc.keys()], ["B", "C"]); // claims do not flow back
 assert.deepEqual(annexers(world, "B").map((a) => a.by), ["A"]);
 assert.deepEqual(annexers(world, "A"), []); // nobody claims Acap
 const r = risks(world, full);
-assert.deepEqual(r.map((x) => x.id), ["B", "A"]); // C has no annex targets; B ranks first, it is project-gated
+assert.deepEqual(r.map((x) => x.id), ["B"]); // A is the start, never swallowed; C has no annex targets
 assert.deepEqual([...r[0].gates], ["P"]); // B cannot move until project P is done
 assert.deepEqual(r[0].traps.map((t) => t.by), ["A"]); // ...and A can eat B with no project at all
 
