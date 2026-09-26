@@ -121,7 +121,8 @@ const variant = (opts) =>
 // player technique, not something the data says you may do, so it never becomes the default view.
 // Union names hide who you are dealing with (African Union is Ethiopia), so the page can say.
 const renamed = Object.fromEntries(
-  [...world.union.entries()].map(([id, u]) => [short(u.name), name(world, id, 0)]).filter(([now, was]) => now !== was),
+  [...world.union.entries()].filter(([id, u]) => short(u.name) !== name(world, id, 0))
+    .map(([id, u]) => [short(u.name), `${name(world, id, 0)} (${short(id)})`]),
 );
 const sets = { plain: variant({}), launder: variant({ launder: true }), renamed };
 
