@@ -230,6 +230,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
 .move .verb { color: var(--ink-soft); }
 .move .verb.war { color: var(--war); font-weight: 600; }
 .move .target { font-weight: 600; }
+.renamed { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
 .move .pop {
   font: 400 13px/1.4 "IBM Plex Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
@@ -331,6 +332,8 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
   const pct = (v) => (v / scale) * 100 + "%";
   const plural = (n, word) => n + " " + word + (n === 1 ? "" : "s");
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  // A nation that took its union name keeps its original one on hover.
+  const nm = (s) => (SETS.renamed[s] ? `<span class="renamed" title="Originally ${esc(SETS.renamed[s])}">${esc(s)}</span>` : esc(s));
 
   const KEYS = {
     people: total,
@@ -349,19 +352,19 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
           ? ` <span class="verb">&mdash; laundered earlier</span>`
           : "";
     return `<div class="move">
-      <span><span class="target">${esc(mv.by)}</span>
+      <span><span class="target">${nm(mv.by)}</span>
         <span class="verb${war ? " war" : ""}">${verb}</span>
-        <span class="target">${esc(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}${tail}</span>
+        <span class="target">${nm(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}${tail}</span>
       <span class="pop">${mv.kind === "launder" ? DASH : m(mv.pop)}</span>
       ${mv.project ? `<span class="gate">requires ${esc(mv.project)}</span>` : ""}
     </div>`;
   };
 
   const keeper = (k) => `<div class="keep-item${k.traps.length ? " trapped" : ""}">
-      <b>${esc(k.name)}</b>
-      <p>Must first take ${esc(k.targets.join(", "))}.
+      <b>${nm(k.name)}</b>
+      <p>Must first take ${k.targets.map(nm).join(", ")}.
       ${k.gates.length ? `<span class="gates">Waits on ${esc(k.gates.join(", "))}.</span>` : "No research needed."}</p>
-      ${k.traps.length ? `<p class="warn">&#9888; ${esc(k.traps.join(", "))} can unify it with no project at all. Block that until it has moved.</p>` : ""}
+      ${k.traps.length ? `<p class="warn">&#9888; ${k.traps.map(nm).join(", ")} can unify it with no project at all. Block that until it has moved.</p>` : ""}
     </div>`;
 
   const card = (b, i) => {
@@ -369,7 +372,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     return `<details class="bloc${b.latent ? " latent" : ""}" id="bloc-${esc(b.id)}">
       <summary class="row-head" aria-controls="${detailId}">
         <span class="rank">${String(i + 1).padStart(2, "0")}</span>
-        <span class="nation">${esc(b.name)}<small>${esc(b.id)}${b.latent ? `<span class="chip">FORM FIRST</span>` : ""}</small></span>
+        <span class="nation">${nm(b.name)}<small>${esc(b.id)}${b.latent ? `<span class="chip">FORM FIRST</span>` : ""}</small></span>
         <span class="bar" role="img" aria-label="${m(b.held + b.grabbed)} unified, ${m(b.seized)} taken by war">
           <b class="b-annex" style="width:${pct(b.held)}"></b>
           <b class="b-grab" style="width:${pct(b.grabbed)}"></b>
@@ -385,7 +388,7 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       </summary>
       <div class="detail" id="${detailId}">
         <section>
-          ${b.latent ? `<h3>Before anything else</h3><p class="note" style="margin:0">${esc(b.name)} holds no land at the start &mdash; ${esc(b.latent)} sits on its capital. Everything below waits on an event that puts it back on the map.</p>` : ""}
+          ${b.latent ? `<h3>Before anything else</h3><p class="note" style="margin:0">${nm(b.name)} holds no land at the start &mdash; ${nm(b.latent)} sits on its capital. Everything below waits on an event that puts it back on the map.</p>` : ""}
           <h3>Order of operations</h3>
           ${b.phases
             .map(

@@ -113,7 +113,11 @@ const variant = (opts) =>
 
 // Two worlds, one page: the page toggles between them. Laundering a hostile capital claim is a
 // player technique, not something the data says you may do, so it never becomes the default view.
-const sets = { plain: variant({}), launder: variant({ launder: true }) };
+// Union names hide who you are dealing with (African Union is Ethiopia), so the page can say.
+const renamed = Object.fromEntries(
+  [...world.union.entries()].map(([id, u]) => [short(u.name), name(world, id, 0)]).filter(([now, was]) => now !== was),
+);
+const sets = { plain: variant({}), launder: variant({ launder: true }), renamed };
 
 const template = fs.readFileSync(path.join(__dirname, "unifications.template.html"), "utf8");
 const output = template.replace("__BLOCS__", JSON.stringify(sets));
