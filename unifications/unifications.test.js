@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const { buildWorld, loadWorld, loadNationNames, unify, topBlocs, latentStarts, plan, annexers, risks, population, holdings, name } = require("./unifications");
+const { buildWorld, loadWorld, loadNationNames, unify, topBlocs, latentStarts, plan, stages, annexers, risks, population, holdings, name } = require("./unifications");
 const TEMPLATES = require("node:path").join(__dirname, "..", "templates");
 
 const claim = (nation, region, extra = {}) => ({ relationType: "Claim", nation1: nation, region1: region, ...extra });
@@ -37,6 +37,12 @@ assert.deepEqual([...full.projectsNeeded], ["P"]);
 assert.equal(full.bloc.get("C").via, "B"); // snowball: C only via B's inherited claim
 assert.equal(full.grabs.size, 0); // Cland came along with C
 assert.equal(full.reach, 5);
+
+// B can only take C after P, and A must not swallow B before it has: both land in P's stage.
+assert.deepEqual(
+  stages(world, full, ["P"]).map((s) => [s.project, s.phases.map((p) => p.map((m) => `${m.by}>${m.nation}`))]),
+  [["P", [["B>C"], ["A>B"]]]],
+);
 
 const gated = unify(world, "A", { projects: false });
 assert.deepEqual([...gated.bloc.keys()], ["A", "B"]);

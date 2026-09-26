@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { researchClosure } = require("../drives/research-costs");
 const { loadTemplates } = require("../templates");
-const { loadWorld, unify, topBlocs, latentStarts, plan, risks, population, holdings, region, short, name } = require("./unifications");
+const { loadWorld, unify, topBlocs, latentStarts, stages, risks, population, holdings, region, short, name } = require("./unifications");
 
 const templates = path.resolve(process.argv[2] || path.join(__dirname, "..", "templates"));
 const projectTemplates = loadTemplates(templates, "TIProjectTemplate.json");
@@ -31,8 +31,24 @@ function researchBill(projects) {
   };
 }
 
-const phases = (u) =>
-  plan(world, u).map((moves) =>
+// The order to research a bloc's projects in: each step takes whichever adds the fewest RP on top
+// of what is already bought (prereqs are shared), and the event-only unlocks go last.
+function researchOrder(projects) {
+  const bill = (ps) => {
+    const { cost } = researchClosure(projectTemplates, techTemplates, ps);
+    return cost.some((c) => c < 0) ? Infinity : cost.reduce((a, b) => a + b, 0);
+  };
+  const order = [];
+  const left = projects.filter((p) => projectTemplate.has(p)).sort();
+  while (left.length) {
+    const costs = left.map((p) => bill([...order, p]));
+    order.push(...left.splice(costs.indexOf(Math.min(...costs)), 1));
+  }
+  return [...order, ...projects.filter((p) => !projectTemplate.has(p)).sort()];
+}
+
+const formatPhases = (u, phases) =>
+  phases.map((moves) =>
     moves
       .map((m) =>
         m.kind === "launder"
@@ -82,9 +98,13 @@ const phases = (u) =>
 const describe = (latent) => (u) => {
   const grabs = [...u.grabs.values()];
   const warRegions = grabs.filter((g) => g.hostile).map((g) => g.region);
-  const phaseList = phases(u);
+  const projects = researchOrder([...u.projectsNeeded]);
+  const stageList = stages(world, u, projects).map((s) => ({
+    research: s.project && pname(s.project),
+    phases: formatPhases(u, s.phases),
+  }));
+  const phaseList = stageList.flatMap((s) => s.phases);
   const acts = phaseList.flat().map((m) => m.byId);
-  const projects = [...u.projectsNeeded];
   return {
     id: short(u.start),
     name: name(world, u.start),
@@ -95,7 +115,7 @@ const describe = (latent) => (u) => {
     seized: population(world, warRegions),
     wars: phaseList.flat().filter((m) => m.kind === "war" || m.kind === "launder").length,
     ...researchBill(projects),
-    projects: projects.map(pname).sort(),
+    projects: projects.map(pname), // in research order
     // Listed in the order they act, so the list reads alongside the plan.
     keep: risks(world, u)
       .filter((r) => r.targets.length)
@@ -106,7 +126,7 @@ const describe = (latent) => (u) => {
         gates: [...r.gates].map(pname).sort(),
         traps: r.traps.map((t) => name(world, t.by)),
       })),
-    phases: phaseList,
+    stages: stageList,
     latent: latent ? name(world, world.ownerOf.get(world.nations.get(u.start).capital)) : null,
   };
 };

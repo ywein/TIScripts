@@ -338,9 +338,13 @@ function plan(world, u) {
       project: m.project,
       launder: true,
     });
-  const phases = [...new Set(moves.map((m) => m.level))]
-    .sort((a, b) => b - a)
-    .map((level) => moves.filter((m) => m.level === level));
+  return tally(world, u, byLevel(moves));
+}
+
+const byLevel = (moves) =>
+  [...new Set(moves.map((m) => m.level))].sort((a, b) => b - a).map((level) => moves.filter((m) => m.level === level));
+
+function tally(world, u, phases) {
   // Tally holdings in execution order so every move carries the region count each side had when it
   // was made — that is what decides whether the line reads "Java" or "Indonesia".
   const owned = new Map([...u.bloc.keys()].map((id) => [id, world.nations.get(id).regions.length]));
@@ -355,6 +359,36 @@ function plan(world, u) {
     for (const m of phase) if (m.kind !== "launder") owned.set(m.by, owned.get(m.by) + m.nationRegions);
   }
   return phases;
+}
+
+// Research gates a campaign harder than depth does, so group the plan by research: first every
+// move that needs none, then those the first project in `order` unlocks, and so on. A nation must
+// make its moves before it is swallowed, so its annexation waits for its slowest move; a laundered
+// nation is unified only after its laundering, and launders only once it has been released itself.
+// Each stage runs deepest-first like the plain plan. Returns [{ project, phases }], project null
+// for the free stage.
+function stages(world, u, order) {
+  const moves = plan(world, u).flat();
+  const rank = (p) => (p ? order.indexOf(p) + 1 : 0);
+  const stage = new Map(moves.map((m) => [m, Math.max(0, ...(m.projects || [m.project]).map(rank))]));
+  const launderOf = new Map(moves.filter((m) => m.kind === "launder").map((m) => [m.nation, m]));
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const m of moves) {
+      const after = [
+        ...(m.kind === "annex" ? moves.filter((o) => o.by === m.nation) : []),
+        ...(m.kind === "annex" ? [launderOf.get(m.nation)] : []),
+        ...(m.kind === "launder" ? [launderOf.get(m.by)] : []),
+      ].filter(Boolean);
+      const s = Math.max(stage.get(m), ...after.map((o) => stage.get(o)));
+      if (s > stage.get(m)) (stage.set(m, s), (changed = true));
+    }
+  }
+  const out = [...new Set(stage.values())]
+    .sort((a, b) => a - b)
+    .map((s) => ({ project: s ? order[s - 1] : null, phases: byLevel(moves.filter((m) => stage.get(m) === s)) }));
+  tally(world, u, out.flatMap((s) => s.phases));
+  return out;
 }
 
 // A nation presses its own claims before it is swallowed (its grabs print one phase earlier), so
@@ -440,4 +474,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { buildWorld, holdings, region, loadWorld, unify, rank, topBlocs, latentStarts, plan, loadNationNames, annexTargets, annexers, risks, population, short, name };
+module.exports = { buildWorld, holdings, region, loadWorld, unify, rank, topBlocs, latentStarts, plan, stages, loadNationNames, annexTargets, annexers, risks, population, short, name };
