@@ -242,6 +242,11 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
   color: var(--ink-soft);
   white-space: nowrap;
 }
+.move label { display: flex; align-items: baseline; gap: 8px; cursor: pointer; }
+.move input { accent-color: var(--annex); flex: none; }
+.move:has(input:checked) { opacity: .45; }
+.plan-head { display: flex; align-items: center; justify-content: space-between; }
+.plan-head button { padding: 3px 8px; font-size: 11px; }
 .move .gate {
   grid-column: 1 / -1;
   font-size: 12px;
@@ -346,7 +351,15 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
     rp: (b) => -(b.rp ?? Infinity),
   };
 
-  const move = (mv) => {
+  // Ticked moves, keyed by what the move is rather than where it sits, so a rebuild keeps them.
+  const STORE = "unifications-done";
+  let done = {};
+  try { done = JSON.parse(localStorage.getItem(STORE)) || {}; } catch {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(done)); } catch {} };
+  const moveKey = (bloc, mv) => [bloc, mv.kind, mv.by, mv.what, mv.where].join("|");
+
+  const move = (mv, bloc) => {
+    const k = moveKey(bloc, mv);
     const war = mv.kind === "war" || mv.kind === "launder";
     const verb = mv.kind === "launder" ? "takes and releases" : mv.kind === "annex" ? "unifies" : war ? "conquers" : "takes";
     // A laundering moves nothing yet, so its population is the capital it sits on, not a gain.
@@ -357,9 +370,9 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
           ? ` <span class="verb">&mdash; laundered earlier</span>`
           : "";
     return `<div class="move">
-      <span><span class="target">${nm(mv.by)}</span>
+      <label><input type="checkbox" data-key="${esc(k)}"${done[k] ? " checked" : ""}><span><span class="target">${nm(mv.by)}</span>
         <span class="verb${war ? " war" : ""}">${verb}</span>
-        <span class="target">${nm(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}${tail}</span>
+        <span class="target">${nm(mv.what)}</span>${mv.regions > 1 ? ` <span class="verb">(${plural(mv.regions, "region")})</span>` : ""}${mv.where ? ` <span class="verb">via ${esc(mv.where)}</span>` : ""}${tail}</span></label>
       <span class="pop">${mv.kind === "launder" ? DASH : m(mv.pop)}</span>
       ${mv.project ? `<span class="gate">requires ${esc(mv.project)}</span>` : ""}
     </div>`;
@@ -394,12 +407,12 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       <div class="detail" id="${detailId}">
         <section>
           ${b.latent ? `<h3>Before anything else</h3><p class="note" style="margin:0">${nm(b.name)} holds no land at the start &mdash; ${nm(b.latent)} sits on its capital. Everything below waits on an event that puts it back on the map.</p>` : ""}
-          <h3>Order of operations</h3>
+          <h3 class="plan-head">Order of operations<button type="button" class="sort" data-reset="${esc(b.id)}">Reset</button></h3>
           ${b.phases
             .map(
               (moves, n) => `<div class="phase">
                 <div class="phase-label">Phase ${n + 1}<em>${plural(moves.length, "move")}</em></div>
-                ${moves.map(move).join("")}
+                ${moves.map((mv) => move(mv, b.id)).join("")}
               </div>`,
             )
             .join("")}
@@ -438,6 +451,21 @@ button.sort:focus-visible, .row-head:focus-visible { outline: 2px solid var(--fo
       .join("");
     for (const d of list.querySelectorAll("details")) if (open.has(d.id)) d.open = true;
   };
+
+  list.addEventListener("change", (e) => {
+    const k = e.target.dataset.key;
+    if (!k) return;
+    if (e.target.checked) done[k] = true;
+    else delete done[k];
+    save();
+  });
+  list.addEventListener("click", (e) => {
+    const bloc = e.target.dataset.reset;
+    if (bloc === undefined) return;
+    for (const k of Object.keys(done)) if (k.startsWith(bloc + "|")) delete done[k];
+    save();
+    for (const box of e.target.closest("details").querySelectorAll("input[data-key]")) box.checked = false;
+  });
 
   const latentToggle = document.getElementById("latent-toggle");
   latentToggle.addEventListener("click", () => {
