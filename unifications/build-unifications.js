@@ -42,6 +42,7 @@ const phases = (u) =>
               kind: "launder",
               launder: true,
               by: name(world, m.by, m.byRegions),
+              byId: m.by,
               what: name(world, m.nation, m.nationRegions),
               where: region(world, m.region),
               pop: population(world, [m.region]),
@@ -55,6 +56,7 @@ const phases = (u) =>
               // released phases ago; only the unification happens here.
               launder: !!m.launder,
               by: name(world, m.by, m.byRegions),
+              byId: m.by,
               what: name(world, m.nation, m.nationRegions),
               where: region(world, m.region),
               pop: population(world, holdings(world, u, m.nation)),
@@ -66,6 +68,7 @@ const phases = (u) =>
               // the "via" region; everything else is a single region taken on its own.
               kind: m.kind,
               by: name(world, m.by, m.byRegions),
+              byId: m.by,
               what: m.regions.length > 1 ? name(world, m.victim) : region(world, m.region),
               where: m.regions.length > 1 ? region(world, m.region) : null,
               pop: population(world, m.regions),
@@ -80,6 +83,7 @@ const describe = (latent) => (u) => {
   const grabs = [...u.grabs.values()];
   const warRegions = grabs.filter((g) => g.hostile).map((g) => g.region);
   const phaseList = phases(u);
+  const acts = phaseList.flat().map((m) => m.byId);
   const projects = [...u.projectsNeeded];
   return {
     id: short(u.start),
@@ -92,8 +96,10 @@ const describe = (latent) => (u) => {
     wars: phaseList.flat().filter((m) => m.kind === "war" || m.kind === "launder").length,
     ...researchBill(projects),
     projects: projects.map(pname).sort(),
+    // Listed in the order they act, so the list reads alongside the plan.
     keep: risks(world, u)
       .filter((r) => r.targets.length)
+      .sort((a, b) => acts.indexOf(a.id) - acts.indexOf(b.id))
       .map((r) => ({
         name: name(world, r.id),
         targets: r.targets.map((t) => name(world, t.target)),
